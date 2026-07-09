@@ -1,0 +1,13 @@
+{
+  "menu": [
+    {
+      "label": "Plugins",
+      "submenu": [
+        {
+          "label": "Toggle Presentation",
+          "command": "ink-presentation:toggle"
+        }
+      ]
+    }
+  ]
+}

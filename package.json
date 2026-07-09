@@ -1,0 +1,42 @@
+{
+  "name": "ink-presentation",
+  "version": "0.1.0",
+  "description": "Present your Markdown notes as beautiful Reveal.js slideshows inside Inkdrop",
+  "main": "./lib/index.js",
+  "repository": "https://github.com/crafts69guy/ink-presentation",
+  "license": "MIT",
+  "keywords": [
+    "inkdrop",
+    "presentation",
+    "slides",
+    "reveal.js"
+  ],
+  "engines": {
+    "inkdrop": "^6.0.0"
+  },
+  "scripts": {
+    "gen:css": "node scripts/gen-css.mjs",
+    "dev": "npm run gen:css && tsdown --watch",
+    "build": "npm run gen:css && tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src test",
+    "fmt": "oxfmt",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@inkdropapp/types": "^0.0.9",
+    "@types/event-kit": "^2.4.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/react": "^19.0.0",
+    "@types/reveal.js": "^5.2.2",
+    "event-kit": "^2.5.3",
+    "highlight.js": "^11.11.1",
+    "js-yaml": "^4.1.0",
+    "oxlint": "^1.0.0",
+    "reveal.js": "^5.2.1",
+    "tsdown": "^0.22.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  }
+}

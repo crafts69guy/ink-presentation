@@ -1,0 +1,8 @@
+// Only the overlay host is styled globally; everything inside the
+// presentation lives in a Shadow DOM and never leaks into app styles.
+.ink-presentation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #191919;
+}
