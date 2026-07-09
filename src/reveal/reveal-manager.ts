@@ -7,10 +7,9 @@ import type { EffectiveDeckOptions } from '../core/deck-config'
 import { prepareForShadowRoot } from '../core/css'
 import { NOTES_SEPARATOR_REGEX } from '../core/notes'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
-import hljsGithubDarkCss from '../generated/hljs-github-dark-css'
 import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
-import blackThemeCss from '../generated/theme-black-css'
+import { getHighlightSheet, isAppDark, resolveTheme } from './themes'
 
 export interface RevealManagerInit {
   /** Sentinel-joined markdown from the preprocessing pipeline. */
@@ -21,11 +20,12 @@ export interface RevealManagerInit {
 type ManagerState = 'idle' | 'initializing' | 'ready' | 'destroyed'
 
 /**
- * Styles injected last so they win over the theme at equal specificity.
- * Fonts: theme `@font-face`/`@import` rules are stripped (they cannot load in
- * a shadow root), so point Reveal's font variables at system stacks.
+ * Host sizing plus system font-stack fallbacks, injected BEFORE the theme so
+ * a theme's own font variables win. Theme `@font-face`/`@import` rules are
+ * stripped (they cannot load in a shadow root); themes that name webfonts
+ * fall back to the next family in their own stacks.
  */
-const OVERRIDES_CSS = `
+const BASE_CSS = `
 :host {
   display: block;
   width: 100%;
@@ -122,16 +122,19 @@ export class RevealManager {
   }
 
   private injectStyles(root: ShadowRoot): void {
+    const theme = resolveTheme(this.init.options.theme)
+    const dark = theme.dark === 'auto' ? isAppDark() : theme.dark
     const sheets = [
-      prepareForShadowRoot(resetCss),
-      prepareForShadowRoot(revealCss),
-      prepareForShadowRoot(blackThemeCss),
-      prepareForShadowRoot(hljsGithubDarkCss),
-      OVERRIDES_CSS
+      resetCss,
+      revealCss,
+      BASE_CSS,
+      ...theme.base,
+      getHighlightSheet(dark),
+      ...theme.overrides
     ]
     for (const cssText of sheets) {
       const style = document.createElement('style')
-      style.textContent = cssText
+      style.textContent = prepareForShadowRoot(cssText)
       root.appendChild(style)
     }
   }

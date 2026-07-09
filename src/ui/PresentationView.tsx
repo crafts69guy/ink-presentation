@@ -19,6 +19,10 @@ function exitFullscreenIfActive(): void {
 
 export function PresentationView() {
   const [note, setNote] = useState<PresentationNote | null>(null)
+  // Bumped to force a deck rebuild when settings or the app theme change
+  // while presenting (colors follow live via CSS vars, but the highlight.js
+  // sheet and Reveal options are baked in at initialize time).
+  const [deckKey, setDeckKey] = useState(0)
   const hostRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -28,6 +32,22 @@ export function PresentationView() {
     )
     return () => subscriptions.dispose()
   }, [])
+
+  useEffect(() => {
+    if (!note) return
+    const rebuild = () => setDeckKey(key => key + 1)
+    const config = getEnv().config
+    const subscriptions = new CompositeDisposable(
+      config.onDidChange('ink-presentation', rebuild),
+      config.onDidChange('core.themes', rebuild)
+    )
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQuery.addEventListener('change', rebuild)
+    return () => {
+      subscriptions.dispose()
+      mediaQuery.removeEventListener('change', rebuild)
+    }
+  }, [note])
 
   useEffect(() => {
     const host = hostRef.current
@@ -118,7 +138,7 @@ export function PresentationView() {
       exitFullscreenIfActive()
       manager.destroy()
     }
-  }, [note])
+  }, [note, deckKey])
 
   if (!note) return null
   return <div ref={hostRef} className="ink-presentation-overlay" />

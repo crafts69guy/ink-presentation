@@ -1,0 +1,71 @@
+/*
+ * The "inkdrop" theme: maps Reveal's --r-* variables onto Inkdrop's app
+ * CSS variables. Custom properties inherit through the shadow boundary, so
+ * these resolve against the live app theme — switching Inkdrop light/dark
+ * restyles an open deck instantly. Every var() carries a fallback in case a
+ * theme does not define it.
+ *
+ * Injected AFTER a structural Reveal theme (black.css), whose rules read
+ * these variables, and after the highlight.js sheet, so the code-block
+ * surfaces below win.
+ */
+:host {
+  --r-background-color: var(--editor-background, var(--editor-background-color, #1c1c1c));
+  --r-main-color: var(--text-color, #dddddd);
+  --r-heading-color: var(--mde-preview-heading-color, var(--text-color, #ffffff));
+  --r-main-font: var(--font-name, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif);
+  --r-heading-font: var(--font-name, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif);
+  --r-code-font: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  --r-link-color: var(--mde-preview-link-color, var(--link-color, #578af1));
+  --r-link-color-hover: var(--link-hover-color, var(--mde-preview-link-color, var(--link-color, #82aaff)));
+  --r-selection-background-color: var(--highlight-background, rgba(87, 138, 241, 0.75));
+  --r-selection-color: var(--highlight-color, #ffffff);
+  --r-heading-text-transform: none;
+  --r-heading-text-shadow: none;
+  --r-heading-font-weight: 700;
+}
+
+.reveal strong {
+  color: var(--mde-preview-strong-color, inherit);
+}
+
+.reveal em {
+  color: var(--mde-preview-em-color, inherit);
+}
+
+.reveal pre {
+  box-shadow: none;
+}
+
+.reveal pre code {
+  background-color: var(--mde-preview-codeblock-background-color, rgba(127, 127, 127, 0.15));
+  border-radius: 6px;
+}
+
+.reveal code:not(pre code) {
+  background-color: var(--mde-preview-inline-code-background-color, rgba(127, 127, 127, 0.2));
+  color: var(--mde-preview-inline-code-text-color, inherit);
+  border-radius: 4px;
+  padding: 0 0.15em;
+}
+
+.reveal table th {
+  background-color: var(--mde-preview-table-head-background-color, transparent);
+  color: var(--mde-preview-table-head-text-color, inherit);
+}
+
+.reveal blockquote {
+  background: var(--mde-preview-inline-mark-background-color, rgba(127, 127, 127, 0.1));
+  border-left: 4px solid var(--border-color, rgba(127, 127, 127, 0.4));
+  box-shadow: none;
+  padding: 0.2em 0.8em;
+}
+
+.reveal .progress {
+  color: var(--primary-color, var(--link-color, #578af1));
+}
+
+.reveal .slide-number {
+  background-color: transparent;
+  color: var(--text-color, #999999);
+}
