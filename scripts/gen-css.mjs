@@ -15,7 +15,9 @@ const outDir = join(rootDir, 'src', 'generated')
 const manifest = [
   { source: 'reveal.js/dist/reset.css', out: 'reveal-reset-css.ts' },
   { source: 'reveal.js/dist/reveal.css', out: 'reveal-css.ts' },
-  { source: 'reveal.js/dist/theme/black.css', out: 'theme-black-css.ts' }
+  { source: 'reveal.js/dist/theme/black.css', out: 'theme-black-css.ts' },
+  { source: 'highlight.js/styles/github.css', out: 'hljs-github-css.ts' },
+  { source: 'highlight.js/styles/github-dark.css', out: 'hljs-github-dark-css.ts' }
 ]
 
 mkdirSync(outDir, { recursive: true })

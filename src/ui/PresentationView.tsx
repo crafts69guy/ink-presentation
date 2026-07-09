@@ -2,30 +2,12 @@ import { CompositeDisposable } from 'event-kit'
 // Classic JSX transform: the built output must only require 'react', which is
 // the module the Inkdrop host is known to provide ('react/jsx-runtime' isn't).
 import React, { useEffect, useRef, useState } from 'react'
-import { getConfig } from '../config'
+import { getAllConfig } from '../config'
 import { getEnv } from '../env'
+import { prepareDeck } from '../core/pipeline'
 import { bindKeys, type KeyAction } from '../reveal/key-controller'
 import { RevealManager } from '../reveal/reveal-manager'
 import { presentationEvents, type PresentationNote } from './presentation-events'
-
-// M1 skeleton: present a hard-coded demo deck. M2 wires the real note body
-// through the frontmatter/notes/separator pipeline.
-function buildDemoMarkdown(note: PresentationNote): string {
-  return [
-    `# ${note.title}`,
-    '',
-    'ink-presentation skeleton is alive 🎉',
-    '',
-    '---',
-    '',
-    '## Navigation works',
-    '',
-    '- `→` / `Space` — next slide',
-    '- `←` — previous slide',
-    '- `O` — overview, `F` — fullscreen',
-    '- `Esc` — close'
-  ].join('\n')
-}
 
 function exitFullscreenIfActive(): void {
   if (document.fullscreenElement) {
@@ -52,12 +34,16 @@ export function PresentationView() {
     if (!note || !host) return
 
     let cancelled = false
+    const prepared = prepareDeck(note.body, getAllConfig())
+    if (prepared.warnings.length > 0) {
+      getEnv().notifications.addInfo('ink-presentation', {
+        detail: prepared.warnings.join('\n'),
+        dismissable: true
+      })
+    }
     const manager = new RevealManager(host, {
-      markdown: buildDemoMarkdown(note),
-      separator: '^\\r?\\n---\\r?\\n$',
-      transition: getConfig('transition'),
-      showSlideNumber: getConfig('showSlideNumber'),
-      showProgressBar: getConfig('showProgressBar')
+      markdown: prepared.markdown,
+      options: prepared.options
     })
 
     manager
@@ -73,7 +59,7 @@ export function PresentationView() {
         setNote(null)
       })
 
-    if (getConfig('autoFullscreen') && !document.fullscreenElement) {
+    if (prepared.options.autoFullscreen && !document.fullscreenElement) {
       host.requestFullscreen().catch(() => {
         // Fullscreen denied (e.g. not a user gesture); the fixed overlay
         // still covers the window, so continue without it.

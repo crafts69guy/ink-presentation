@@ -74,3 +74,15 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
 export function getConfig<K extends keyof PluginConfigValues>(key: K): PluginConfigValues[K] {
   return getEnv().config.get(`ink-presentation.${key}`) as PluginConfigValues[K]
 }
+
+export function getAllConfig(): PluginConfigValues {
+  return {
+    slideSeparator: getConfig('slideSeparator'),
+    theme: getConfig('theme'),
+    transition: getConfig('transition'),
+    autoFullscreen: getConfig('autoFullscreen'),
+    showSlideNumber: getConfig('showSlideNumber'),
+    showProgressBar: getConfig('showProgressBar'),
+    verticalSlides: getConfig('verticalSlides')
+  }
+}

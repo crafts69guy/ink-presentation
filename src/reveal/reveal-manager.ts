@@ -1,21 +1,21 @@
+// lib/common bundles ~40 popular languages instead of the full set (or
+// Reveal's highlight plugin, which inlines all of highlight.js — ~1 MB).
+import hljs from 'highlight.js/lib/common'
 import Reveal from 'reveal.js'
 import RevealMarkdown from 'reveal.js/plugin/markdown/markdown.esm.js'
+import type { EffectiveDeckOptions } from '../core/deck-config'
+import { prepareForShadowRoot } from '../core/css'
+import { NOTES_SEPARATOR_REGEX } from '../core/notes'
+import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
+import hljsGithubDarkCss from '../generated/hljs-github-dark-css'
 import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
 import blackThemeCss from '../generated/theme-black-css'
-import { prepareForShadowRoot } from '../core/css'
-import type { TransitionName } from '../config'
 
-export interface DeckOptions {
-  /** Preprocessed markdown (frontmatter already stripped). */
+export interface RevealManagerInit {
+  /** Sentinel-joined markdown from the preprocessing pipeline. */
   markdown: string
-  /** Reveal `data-separator` regex source for horizontal slides. */
-  separator: string
-  /** Reveal `data-separator-vertical` regex source; omit to disable. */
-  verticalSeparator?: string
-  transition: TransitionName
-  showSlideNumber: boolean
-  showProgressBar: boolean
+  options: EffectiveDeckOptions
 }
 
 type ManagerState = 'idle' | 'initializing' | 'ready' | 'destroyed'
@@ -51,7 +51,7 @@ export class RevealManager {
 
   constructor(
     private readonly host: HTMLElement,
-    private readonly options: DeckOptions
+    private readonly init: RevealManagerInit
   ) {}
 
   getDeck(): Reveal.Api | null {
@@ -67,6 +67,7 @@ export class RevealManager {
     this.injectStyles(root)
     const viewport = this.buildDeckDom(root)
 
+    const { options } = this.init
     const deck = new Reveal(viewport, {
       embedded: true,
       // All keyboard input is owned by key-controller.ts.
@@ -74,9 +75,9 @@ export class RevealManager {
       hash: false,
       respondToHashChanges: false,
       history: false,
-      transition: this.options.transition,
-      progress: this.options.showProgressBar,
-      slideNumber: this.options.showSlideNumber ? 'c/t' : false,
+      transition: options.transition,
+      progress: options.showProgressBar,
+      slideNumber: options.showSlideNumber ? 'c/t' : false,
       plugins: [RevealMarkdown]
     })
 
@@ -88,8 +89,16 @@ export class RevealManager {
       this.safeDestroyDeck(deck)
       return
     }
+    this.highlightCodeBlocks(root)
     this.deck = deck
     this.state = 'ready'
+  }
+
+  /** RevealMarkdown has converted the slides by now; highlight in place. */
+  private highlightCodeBlocks(root: ShadowRoot): void {
+    for (const block of Array.from(root.querySelectorAll('pre code'))) {
+      hljs.highlightElement(block as HTMLElement)
+    }
   }
 
   destroy(): void {
@@ -117,6 +126,7 @@ export class RevealManager {
       prepareForShadowRoot(resetCss),
       prepareForShadowRoot(revealCss),
       prepareForShadowRoot(blackThemeCss),
+      prepareForShadowRoot(hljsGithubDarkCss),
       OVERRIDES_CSS
     ]
     for (const cssText of sheets) {
@@ -134,17 +144,15 @@ export class RevealManager {
 
     const section = document.createElement('section')
     section.setAttribute('data-markdown', '')
-    section.setAttribute('data-separator', this.options.separator)
-    if (this.options.verticalSeparator) {
-      section.setAttribute('data-separator-vertical', this.options.verticalSeparator)
-    }
-    section.setAttribute('data-separator-notes', '^Note:')
+    section.setAttribute('data-separator', SLIDE_SEPARATOR_REGEX)
+    section.setAttribute('data-separator-vertical', VSLIDE_SEPARATOR_REGEX)
+    section.setAttribute('data-separator-notes', NOTES_SEPARATOR_REGEX)
 
     // textContent (never innerHTML) so note content containing markup or
     // "</script>" cannot break out of the template element.
     const template = document.createElement('script')
     template.type = 'text/template'
-    template.textContent = this.options.markdown
+    template.textContent = this.init.markdown
     section.appendChild(template)
 
     slides.appendChild(section)
