@@ -116,17 +116,12 @@ described above. For future reference: `ipm publish` is git-tag driven
 Inkdrop plugin developer license, whose issuance is currently paused
 upstream.
 
-## Roadmap
+## Planned features
 
-- [ ] Mermaid diagram rendering in slides
-- [ ] KaTeX math rendering in slides
-- [ ] Popup speaker view (separate presenter window with notes + next slide)
-- [ ] Custom per-note CSS via frontmatter
-- [ ] Auto-refresh the deck when the note is edited while presenting
-- [ ] Publish to the Inkdrop plugin registry (once developer-license issuance reopens)
-
-PDF/HTML export is intentionally out of scope — Inkdrop's built-in note
-export already covers it.
+Mermaid diagram rendering, KaTeX math, a popup speaker view, custom per-note
+CSS, live deck refresh while editing, and plugin-registry publication are on
+the radar for v2. PDF/HTML export is intentionally out of scope — Inkdrop's
+built-in note export already covers it.
 
 ## License
 

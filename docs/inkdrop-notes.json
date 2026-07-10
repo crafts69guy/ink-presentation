@@ -1,37 +1,26 @@
 {
-  "$comment": "Pinned Inkdrop note IDs for the project docs notebook. Agents: address notes by these IDs (never search-and-guess). Update this file if notes are recreated.",
+  "$comment": "Pinned Inkdrop note IDs for the project's tracking notebook. Ownership model: the repo owns public/code-coupled docs (README, docs/, CHANGELOG); the notebook owns tracking (roadmap states, release traceability). Nothing is mirrored. Agents: address notes by these IDs (never search-and-guess).",
   "notebookId": "book:e1wyC-dV",
   "notebookName": "Ink-Presentation",
   "notes": {
     "index": {
       "id": "note:kONT4PLP",
       "title": "Index - Ink-Presentation",
-      "sources": ["README.md"]
-    },
-    "architecture": {
-      "id": "note:P4NH8yZt",
-      "title": "Ink-Presentation - Architecture Overview",
-      "sources": ["docs/architecture.md"]
-    },
-    "decisions": {
-      "id": "note:gEW8G3qS",
-      "title": "Ink-Presentation - Design Decisions",
-      "sources": ["docs/architecture.md"]
+      "owns": "navigation hub + ownership contract"
     },
     "roadmap": {
       "id": "note:ALMgdeuU",
       "title": "Ink-Presentation - Roadmap",
-      "sources": ["README.md#roadmap"]
+      "owns": "v2 backlog tracking: states, research notes, progress log"
     },
     "releaseLog": {
       "id": "note:JITp3s9Z",
       "title": "Ink-Presentation - Release Log",
-      "sources": ["CHANGELOG.md"]
-    },
-    "devWorkflow": {
-      "id": "note:vFjtE4Cf",
-      "title": "Ink-Presentation - Dev Environment & Workflow",
-      "sources": ["README.md#development", "docs/architecture.md"]
+      "owns": "milestone/commit traceability + release procedure"
     }
-  }
+  },
+  "touchpoints": [
+    "Shipping a roadmap item: update CHANGELOG.md (repo) AND roadmap + releaseLog notes in the same session",
+    "Material scope change: refresh the short 'Planned features' list in README.md"
+  ]
 }

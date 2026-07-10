@@ -14,18 +14,22 @@ Works for any coding agent (Claude Code, Codex, …).
   `docs/architecture.md` (read before structural changes).
 - Git: no Co-Authored-By trailers in commits.
 
-## Inkdrop docs notebook (must keep in sync)
+## Inkdrop tracking notebook (ownership split — no mirroring)
 
-Project docs are mirrored into the Inkdrop notebook **"Ink-Presentation"**
-(`book:e1wyC-dV`) via Inkdrop MCP tools. The repo is the source of truth.
+Each piece of content has exactly one source of truth:
 
-- Note IDs are pinned in `docs/inkdrop-notes.json` — address notes by ID,
-  never search-and-guess, never duplicate.
-- Mapping and procedure: `.claude/skills/inkdrop-docs-sync/SKILL.md`
-  (Claude Code loads it as the `inkdrop-docs-sync` skill; other agents:
-  follow the file directly).
-- Sync whenever you change `README.md` (roadmap/usage/dev sections),
-  `CHANGELOG.md`, or `docs/architecture.md`, and after shipping a
-  milestone/release.
+- **Repo owns** public/code-coupled docs: README, `docs/`, CHANGELOG.
+- **Inkdrop notebook "Ink-Presentation"** (`book:e1wyC-dV`) **owns**
+  tracking: roadmap states/research/progress log, release traceability.
+
+Touchpoints (the only cross-updates): shipping a roadmap item/release means
+updating CHANGELOG.md AND the roadmap + release-log notes in the same
+session; a material scope change refreshes the README "Planned features"
+paragraph.
+
+- Note IDs pinned in `docs/inkdrop-notes.json` — address notes by ID, never
+  search-and-guess, never duplicate.
+- Procedure and rules: `.claude/skills/inkdrop-docs-sync/SKILL.md` (Claude
+  Code loads it as a skill; other agents follow the file directly).
 - Note authoring conventions (Mermaid safety, linking, statuses, tags):
   `~/agent-rules/tools/inkdrop-v6/`.

@@ -1,10 +1,10 @@
-// PostToolUse hook: after an Edit/Write touching a doc file that is mirrored
-// into the Inkdrop notebook, remind the agent to run the inkdrop-docs-sync
-// skill. Emits additionalContext JSON (fed back to the agent); silent for
-// non-mapped files.
+// PostToolUse hook: the Inkdrop notebook owns roadmap/release tracking while
+// the repo owns public docs. Editing CHANGELOG.md (a release touchpoint) or
+// the README's Planned features scope should be followed by updating the
+// tracking notes — remind the agent. Silent for everything else.
 import { readFileSync } from 'node:fs'
 
-const WATCHED = /(README\.md|CHANGELOG\.md|docs\/(architecture|writing-slides)\.md)$/
+const WATCHED = /(README\.md|CHANGELOG\.md)$/
 
 let input
 try {
@@ -16,13 +16,13 @@ try {
 const filePath = input?.tool_input?.file_path ?? ''
 if (!WATCHED.test(filePath)) process.exit(0)
 
-const output = {
-  hookSpecificOutput: {
-    hookEventName: 'PostToolUse',
-    additionalContext:
-      `${filePath} is mirrored into the Inkdrop notebook "Ink-Presentation". ` +
-      'Before finishing this task, sync the mapped note via the inkdrop-docs-sync ' +
-      'skill (note IDs in docs/inkdrop-notes.json).'
-  }
-}
-console.log(JSON.stringify(output))
+const isChangelog = filePath.endsWith('CHANGELOG.md')
+const reminder = isChangelog
+  ? 'CHANGELOG.md changed — release touchpoint: update the roadmap and release-log notes in the Inkdrop notebook via the inkdrop-docs-sync skill (note IDs in docs/inkdrop-notes.json).'
+  : 'README.md changed — if the "Planned features" scope changed, update the roadmap note in the Inkdrop notebook via the inkdrop-docs-sync skill (note IDs in docs/inkdrop-notes.json). Other README edits need no note updates.'
+
+console.log(
+  JSON.stringify({
+    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: reminder }
+  })
+)
