@@ -25,12 +25,14 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "katex": "^0.17.0",
     "mermaid": "^11.16.0"
   },
   "devDependencies": {
     "@inkdropapp/types": "^0.0.9",
     "@types/event-kit": "^2.4.4",
     "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.1.1",
     "@types/react": "^19.0.0",
     "@types/reveal.js": "^5.2.2",
     "event-kit": "^2.5.3",

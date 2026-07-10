@@ -4,6 +4,7 @@ Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slide
 
 - 🎨 **App-native theme by default** — slides follow your Inkdrop theme (light/dark, colors, fonts) live, plus 6 classic Reveal themes
 - ✂️ **Flexible slide splitting** — `---` breaks, or automatic `#`/`##` heading splitting with vertical stacks
+- 🧮 **Diagrams & math** — Mermaid diagrams and KaTeX math (`$…$` / `$$…$$`), both loaded lazily only when a note uses them
 - 🗒️ **Speaker notes** — `<!-- note: ... -->` comments or `Note:` lines, shown in an in-deck overlay
 - 🧱 **Code-fence aware** — `---`, `#`, and `Note:` inside code blocks never break your slides
 - ⚙️ **Per-note config** — override theme, transition, and splitting via YAML frontmatter
@@ -92,7 +93,7 @@ Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`,
 ## Known limitations
 
 - **Mermaid diagrams** render as SVG; malformed diagrams show an inline error instead of blocking the deck
-- **Math** renders as plain code blocks (KaTeX support planned for v2)
+- **Math** delimiters follow remark-math rules — `$` must hug the expression (so `$5 and $10` stays prose), `\$` escapes a literal dollar, and math is not detected inside code or 4-space-indented lines. Invalid TeX renders as red source text
 - **No popup speaker view** — notes show as an in-deck overlay (`S`); a separate presenter window is a v2 goal
 - Webfonts referenced by Reveal's built-in themes (League Gothic, Source Sans Pro) fall back to system fonts — fonts can't load inside a shadow root
 
@@ -126,7 +127,7 @@ upstream.
 
 ## Planned features
 
-- [ ] KaTeX math rendering in slides
+- [x] KaTeX math rendering in slides — shipped
 - [ ] Popup speaker view
 - [ ] Custom per-note CSS via frontmatter
 - [ ] Auto-refresh the deck while editing, mid-presentation

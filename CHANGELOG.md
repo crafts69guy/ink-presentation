@@ -8,6 +8,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- KaTeX math rendering in slides: `$inline$` and `$$display$$` TeX, the same
+  delimiters as Inkdrop's math plugin, with remark-math strictness so prose
+  like `costs $5 and $10` is never misread as math (`\$` escapes a literal
+  dollar; code fences, inline backticks, and indented code are never
+  touched). KaTeX, its stylesheet, and its fonts load lazily from the
+  plugin's own dependencies only when a note contains math — the plugin
+  bundle and math-free decks pay nothing. Invalid TeX renders as red source
+  text instead of blocking the deck
 - Mermaid diagram rendering in slides. Diagrams are rendered lazily (mermaid
   is only loaded when a deck contains a `mermaid` code fence) and a malformed
   diagram shows an inline error instead of blocking the deck. Diagram colors

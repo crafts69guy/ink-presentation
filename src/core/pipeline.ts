@@ -1,6 +1,7 @@
 import type { PluginConfigValues } from '../config'
 import { mergeDeckOptions, parseDeckConfig, type EffectiveDeckOptions } from './deck-config'
 import { extractFrontmatter } from './frontmatter'
+import { transformMath } from './math'
 import { buildSlideMarkdown } from './notes'
 import { joinWithSentinels, splitSlides } from './split'
 
@@ -14,15 +15,19 @@ export interface PreparedDeck {
 
 /**
  * The full note-body → deck transformation:
- * frontmatter → option merge → fence-aware slide split → per-slide note
- * normalization → sentinel-joined document.
+ * frontmatter → option merge → math lift-out → fence-aware slide split →
+ * per-slide note normalization → sentinel-joined document.
+ *
+ * Math runs before the split so TeX is already inert placeholder HTML by the
+ * time separator detection (and later marked) sees it — a `$$` block spanning
+ * a `---` or `# ` line can never falsely split a slide.
  */
 export function prepareDeck(body: string, pluginConfig: PluginConfigValues): PreparedDeck {
   const frontmatter = extractFrontmatter(body)
   const deckConfig = parseDeckConfig(frontmatter.data)
   const options = mergeDeckOptions(pluginConfig, deckConfig.config)
 
-  const groups = splitSlides(frontmatter.body, {
+  const groups = splitSlides(transformMath(frontmatter.body), {
     mode: options.separator,
     verticalSlides: options.verticalSlides
   })

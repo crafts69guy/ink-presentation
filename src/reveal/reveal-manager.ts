@@ -5,10 +5,12 @@ import Reveal from 'reveal.js'
 import RevealMarkdown from 'reveal.js/plugin/markdown/markdown.esm.js'
 import type { EffectiveDeckOptions } from '../core/deck-config'
 import { prepareForShadowRoot } from '../core/css'
+import { decodeMathTex, MATH_DISPLAY_ATTR, MATH_TEX_ATTR } from '../core/math'
 import { NOTES_SEPARATOR_REGEX } from '../core/notes'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
 import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
+import { ensureKatexAssets } from './katex-assets'
 import { getHighlightSheet, isAppDark, resolveTheme } from './themes'
 
 export interface SlidePosition {
@@ -67,6 +69,11 @@ const BASE_CSS = `
   font-family: var(--r-code-font);
   white-space: pre-wrap;
 }
+/* Long equations scroll within the slide instead of overflowing it. */
+.reveal .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 `
 
 /** Lazily imported once; re-initialized (cheap, no re-import) on every
@@ -77,6 +84,16 @@ async function loadMermaid(): Promise<typeof import('mermaid').default> {
   mermaidModule ??= import('mermaid')
   const { default: mermaid } = await mermaidModule
   return mermaid
+}
+
+/** Lazily imported once, same budget reasoning as mermaid above: katex stays
+ * external (tsdown `neverBundle`) and only loads when a deck contains math. */
+let katexModule: Promise<typeof import('katex')> | null = null
+
+async function loadKatex(): Promise<typeof import('katex').default> {
+  katexModule ??= import('katex')
+  const { default: katex } = await katexModule
+  return katex
 }
 
 /**
@@ -195,12 +212,26 @@ export class RevealManager {
       this.safeDestroyDeck(deck)
       return
     }
+    const mathRendered = await this.renderMathExpressions(root)
+    if (this.state !== 'initializing') {
+      // And once more after the katex render's own await.
+      this.safeDestroyDeck(deck)
+      return
+    }
     this.highlightCodeBlocks(root)
     this.deck = deck
     this.state = 'ready'
-    // Diagrams change slide content height after Reveal already fit itself
-    // to the pre-diagram DOM.
-    if (diagramsRendered) deck.layout()
+    // Diagrams and math change slide content height after Reveal already fit
+    // itself to the pre-render DOM.
+    if (diagramsRendered || mathRendered) deck.layout()
+    if (mathRendered) {
+      // KaTeX webfonts (document-level data: URIs) finish loading after first
+      // use; glyph metrics shift slightly, so refit once they settle. The
+      // ResizeObserver can't catch this — the host size doesn't change.
+      void document.fonts.ready.then(() => {
+        if (this.state === 'ready') this.deck?.layout()
+      })
+    }
 
     const { initialSlide, onSlideChanged } = this.init
     if (initialSlide && (initialSlide.h > 0 || initialSlide.v > 0)) {
@@ -274,6 +305,57 @@ export class RevealManager {
       rendered = true
     }
     return rendered
+  }
+
+  /**
+   * RevealMarkdown has converted the slides by now; the preprocessing
+   * pipeline (core/math.ts) left empty placeholder spans carrying URI-encoded
+   * TeX. Render KaTeX into them in place. KaTeX itself and its CSS/fonts are
+   * loaded lazily only when placeholders exist — decks without math pay zero
+   * cost. Returns whether anything was rendered, so the caller knows to
+   * relayout.
+   */
+  private async renderMathExpressions(root: ShadowRoot): Promise<boolean> {
+    const nodes = Array.from(root.querySelectorAll<HTMLElement>(`span[${MATH_TEX_ATTR}]`))
+    if (nodes.length === 0) return false
+
+    let katex: Awaited<ReturnType<typeof loadKatex>> | null = null
+    try {
+      const shadowCss = ensureKatexAssets()
+      katex = await loadKatex()
+      const style = document.createElement('style')
+      style.textContent = shadowCss
+      root.appendChild(style)
+    } catch (err) {
+      // Degrade to plain TeX text below rather than blanking the deck.
+      console.error('ink-presentation: failed to load KaTeX', err)
+    }
+
+    for (const node of nodes) {
+      // Bail out if destroy() arrived while katex was loading.
+      if (this.state !== 'initializing') return true
+
+      const tex = decodeMathTex(node.getAttribute(MATH_TEX_ATTR) ?? '')
+      if (tex === null) continue // hand-written span with a malformed attribute
+      // The notes overlay renders text only — keep raw TeX readable there.
+      if (katex === null || node.closest('aside.notes') !== null) {
+        node.textContent = tex
+        continue
+      }
+      try {
+        katex.render(tex, node, {
+          displayMode: node.hasAttribute(MATH_DISPLAY_ATTR),
+          // Invalid TeX renders as red source text instead of throwing.
+          throwOnError: false,
+          // No \href/\includegraphics/… from note content.
+          trust: false
+        })
+      } catch {
+        // throwOnError:false still throws on a few non-parse errors.
+        node.textContent = tex
+      }
+    }
+    return true
   }
 
   /** RevealMarkdown has converted the slides by now; highlight in place. */

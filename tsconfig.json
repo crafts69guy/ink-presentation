@@ -14,7 +14,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["@inkdropapp/types"]
+    "types": ["@inkdropapp/types", "node"]
   },
   "include": ["src", "test", "tsdown.config.ts", "vitest.config.ts"]
 }

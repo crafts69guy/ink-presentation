@@ -86,6 +86,30 @@ lines (`<!--ink-slide-->` / `<!--ink-vslide-->`) that are passed to Reveal as
 loop is safe — `test/pipeline.test.ts` contains a faithful replica of
 slidify's loop as an oracle proving termination and slide shape.
 
+### Math placeholders, not a marked extension (KaTeX)
+
+RevealMarkdown pipes slide markdown through marked, which mangles TeX
+(`_` → `<em>`, `\\` collapses) before any math hook could run — and Reveal's
+own math plugin fetches KaTeX from a CDN. Instead `core/math.ts` lifts
+`$…$` / `$$…$$` segments out in the pure pipeline (fence- and backtick-aware,
+remark-math delimiter rules so `$5 and $10` stays prose), replacing each with
+an empty `<span data-ink-math="…">` carrying URI-encoded TeX. The placeholder
+is inert through marked, slide splitting, and notes handling — running before
+`splitSlides` also means a `$$` block spanning `---`/`# ` lines can never
+falsely split a slide. After RevealMarkdown converts the slides,
+`RevealManager.renderMathExpressions` renders KaTeX into the placeholders
+(`throwOnError: false`, `trust: false`); placeholders inside `aside.notes`
+get raw TeX text instead, because the notes overlay renders text only.
+
+KaTeX's CSS needs its webfonts, but `@font-face` cannot live in a shadow root
+(see `core/css.ts`). `reveal/katex-assets.ts` therefore reads katex.min.css
+and the .woff2 files off disk from the installed package at first use, injects
+the font faces **once at document level** as `data:` URIs (document-level
+fonts apply inside shadow trees), and hands the font-face-free remainder to
+the shadow root. A `document.fonts.ready` hook triggers one extra
+`deck.layout()` as glyph metrics settle. If asset loading fails, placeholders
+degrade to plain TeX text rather than blanking the deck.
+
 ### Speaker notes normalization
 
 RevealMarkdown attaches notes only when the notes separator splits a slide
@@ -136,13 +160,16 @@ plugin, `highlight.js/lib/common` (~40 languages — Reveal's highlight plugin
 inlines all of highlight.js and tripled the bundle), js-yaml, event-kit, and
 the generated CSS strings.
 
-`mermaid` is deliberately kept out of this figure: it's declared as a real
-`dependency` (not `devDependency`), listed in `tsdown.config.ts`'s `external`
-array so it's never inlined, and loaded via a cached `await import('mermaid')`
-only when a deck actually contains a `mermaid` fenced code block
-(`RevealManager.renderMermaidDiagrams`) — the same "don't pay for what you
-don't use" reasoning as `highlight.js/lib/common` above, just via lazy import
-instead of a narrower static subset.
+`mermaid` and `katex` are deliberately kept out of this figure: both are
+declared as real `dependencies` (not `devDependencies`), listed in
+`tsdown.config.ts`'s `neverBundle` array so they're never inlined, and loaded
+via a cached `await import(…)` only when a deck actually needs them — a
+`mermaid` fenced code block (`RevealManager.renderMermaidDiagrams`) or a math
+placeholder (`RevealManager.renderMathExpressions`). KaTeX's CSS and fonts
+(~300 kB of .woff2) follow the same rule via `reveal/katex-assets.ts`, read
+off disk at first use instead of shipping in the bundle — the same "don't pay
+for what you don't use" reasoning as `highlight.js/lib/common` above, just
+via lazy loading instead of a narrower static subset.
 
 ## Dev-environment gotcha: canary data directory
 

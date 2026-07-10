@@ -100,19 +100,26 @@ No frontmatter override needed for this — \`auto\` is the plugin default.
 | Syntax highlighting    | shipped     |
 | Speaker notes           | shipped     |
 | Themes (app + classics) | shipped     |
-| KaTeX math               | planned |
+| KaTeX math               | shipped |
 | Popup speaker view        | planned |
 | Custom per-note CSS         | planned |
 | Live deck refresh while editing | planned |
 
-# Math blocks — planned
+# KaTeX math — shipped
 
-\`\`\`text
-E = mc^2
-\`\`\`
+Inline math flows with the text — Euler's identity $e^{i\\pi} + 1 = 0$ —
+while display blocks get their own line:
 
-Math fences currently render as plain code, same as any other unrecognized
-language — KaTeX rendering is on the roadmap.
+$$
+\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}
+$$
+
+Prose with dollar amounts is safe: $5 here and $10 there never become math,
+and \\$ escapes a literal dollar sign.
+
+Note: KaTeX (and its fonts) only load when a note actually contains math —
+math-free decks pay zero cost. Invalid TeX renders as red source text
+instead of blocking the deck.
 
 # Configuring this deck
 

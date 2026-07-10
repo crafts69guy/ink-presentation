@@ -91,6 +91,31 @@ Note: everything from this line to the end of the slide is also a note
 Multiple notes on one slide are merged into a single block. Notes render as
 plain text in the overlay.
 
+## Math (KaTeX)
+
+Inline `$…$` and display `$$…$$` TeX render via KaTeX — the same delimiters
+as Inkdrop's own math plugin:
+
+```markdown
+Euler's identity $e^{i\pi} + 1 = 0$ inline, or as a block:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+```
+
+Delimiter rules (remark-math style), so prose with dollar signs is safe:
+
+- An opening `$` must not be followed by whitespace; a closing `$` must not
+  be preceded by whitespace or followed by a digit — `costs $5 and $10`
+  never becomes math.
+- `\$` always renders a literal dollar sign.
+- Math inside fenced code, inline backticks, or 4-space-indented lines is
+  never rendered.
+- Invalid TeX shows as red source text instead of blocking the deck.
+
+KaTeX (and its fonts) load only when a note actually contains math.
+
 ## Themes
 
 - **`inkdrop`** (default): mirrors your current Inkdrop theme — background,
@@ -102,8 +127,7 @@ plain text in the overlay.
 ## Limitations
 
 - Mermaid diagrams render as SVG; a malformed diagram shows an inline error
-  instead of blocking the deck. Math blocks still render as plain highlighted
-  code (v2 roadmap).
+  instead of blocking the deck.
 - Speaker notes show in-deck; there is no separate presenter window yet.
 - Slides are a snapshot: edits made while presenting appear the next time
   you open the deck.

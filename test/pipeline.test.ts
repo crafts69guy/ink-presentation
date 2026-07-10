@@ -3,6 +3,7 @@ import type { PluginConfigValues } from '../src/config'
 import { NOTES_SEPARATOR_REGEX } from '../src/core/notes'
 import { prepareDeck } from '../src/core/pipeline'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../src/core/split'
+import { SAMPLE_DECK_BODY } from '../src/sample-deck'
 
 const pluginDefaults: PluginConfigValues = {
   slideSeparator: 'hr',
@@ -125,5 +126,40 @@ describe('prepareDeck', () => {
     const deck = prepareDeck(body, { ...pluginDefaults, slideSeparator: 'h1' })
     expect(deck.slideCount).toBe(1)
     expect(deck.markdown).toBe(body)
+  })
+
+  it('a $$ block containing a separator line never splits a slide', () => {
+    const body = 'intro\n\n$$\na = b\n\n---\n\n# not a heading\n$$\n\noutro'
+    const deck = prepareDeck(body, pluginDefaults)
+    expect(deck.slideCount).toBe(1)
+    expect(deck.markdown).toContain('data-ink-math=')
+    expect(deck.markdown).not.toContain('# not a heading')
+  })
+
+  it('math placeholders survive note extraction and slidify cleanly', () => {
+    const body = '# A\nInline $x_i$ math\n\nNote: speaker\n\n---\n\n# B\n\n$$\ny^2\n$$'
+    const deck = prepareDeck(body, pluginDefaults)
+    expect(deck.slideCount).toBe(2)
+    expect(deck.markdown).not.toContain('$x_i$')
+
+    const sections = slidifyOracle(deck.markdown, SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX)
+    expect(sections).toHaveLength(2)
+    expect(sections[0]).toContain('data-ink-math=')
+    expect(new RegExp(NOTES_SEPARATOR_REGEX, 'm').test(sections[0] as string)).toBe(true)
+  })
+
+  // Guards the sample deck's template-literal escaping (`\\pi`, `\$`) as
+  // much as the pipeline itself.
+  it('the bundled sample deck produces math placeholders and keeps currency literal', () => {
+    const deck = prepareDeck(SAMPLE_DECK_BODY, { ...pluginDefaults, slideSeparator: 'auto' })
+    expect(deck.warnings).toEqual([])
+
+    const spans = deck.markdown.match(/data-ink-math="([^"]*)"/g) ?? []
+    expect(spans.length).toBe(2)
+    expect(deck.markdown).toContain(encodeURIComponent('e^{i\\pi} + 1 = 0'))
+    expect(deck.markdown).toContain(
+      encodeURIComponent('\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}')
+    )
+    expect(deck.markdown).toContain('$5 here and $10 there')
   })
 })
