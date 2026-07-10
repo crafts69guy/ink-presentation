@@ -83,6 +83,70 @@ describe('splitSlides — h2 mode', () => {
   })
 })
 
+describe('splitSlides — auto mode', () => {
+  const opts = { mode: 'auto' as const, verticalSlides: false }
+
+  it('prefers --- over headings when both are present', () => {
+    const groups = splitSlides('# One\n\n---\n\n# Two', opts)
+    expect(groups).toEqual([['# One'], ['# Two']])
+  })
+
+  it('does not let a setext-style --- (text directly above) count as a separator, falling through to headings', () => {
+    const groups = splitSlides('Heading\n---\nbody\n# A\nmore', opts)
+    expect(groups).toEqual([['Heading\n---\nbody'], ['# A\nmore']])
+  })
+
+  it('splits like h1 mode when only H1 headings are present', () => {
+    const groups = splitSlides('# A\ncontent\n# B\nmore', opts)
+    expect(groups).toEqual([['# A\ncontent'], ['# B\nmore']])
+  })
+
+  it('splits like h2 mode (H1 horizontal, H2 vertical) when both H1 and H2 are present', () => {
+    const groups = splitSlides('# A\nintro\n## A1\none\n## A2\ntwo\n# B\nend', opts)
+    expect(groups).toEqual([
+      ['# A\nintro', '## A1\none', '## A2\ntwo'],
+      ['# B\nend']
+    ])
+  })
+
+  it('promotes H2 to a flat horizontal splitter when only H2 headings are present', () => {
+    const groups = splitSlides('## X\na\n## Y\nb', opts)
+    expect(groups).toEqual([['## X\na'], ['## Y\nb']])
+  })
+
+  it('returns a single slide when neither --- nor headings are present', () => {
+    const groups = splitSlides('just some text\nmore text', opts)
+    expect(groups).toEqual([['just some text\nmore text']])
+  })
+
+  it('ignores --- inside a fenced code block when resolving, falling back to headings', () => {
+    const md = '# A\n```\n---\n```\n# B'
+    const groups = splitSlides(md, opts)
+    expect(groups).toEqual([['# A\n```\n---\n```'], ['# B']])
+  })
+
+  it('ignores # and ## inside a fenced code block when resolving, falling back to a single slide', () => {
+    const md = 'intro\n```\n# not a heading\n## also not\n```\nmore text'
+    const groups = splitSlides(md, opts)
+    expect(groups).toEqual([['intro\n```\n# not a heading\n## also not\n```\nmore text']])
+  })
+
+  it('handles CRLF input when resolving to h1-like behavior', () => {
+    const groups = splitSlides('# A\r\ncontent\r\n# B\r\nmore', opts)
+    expect(groups).toEqual([['# A\ncontent'], ['# B\nmore']])
+  })
+
+  it('ignores -- when resolved to hr and verticalSlides is off', () => {
+    const groups = splitSlides('a\n\n--\n\nb\n\n---\n\nc', opts)
+    expect(groups).toEqual([['a\n\n--\n\nb'], ['c']])
+  })
+
+  it('splits -- vertically when resolved to hr and verticalSlides is on', () => {
+    const groups = splitSlides('a\n\n--\n\nb\n\n---\n\nc', { mode: 'auto', verticalSlides: true })
+    expect(groups).toEqual([['a', 'b'], ['c']])
+  })
+})
+
 describe('splitSlides — degenerate input', () => {
   it('returns a single empty slide for an empty body', () => {
     expect(splitSlides('', { mode: 'hr', verticalSlides: false })).toEqual([['']])

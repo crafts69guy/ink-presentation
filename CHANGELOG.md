@@ -8,8 +8,18 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `auto` slide separator mode (now the default): picks `---` if present,
+  otherwise splits on whichever heading level the note actually uses — H1
+  (with H2 nested vertically if also present), or H2 promoted to a flat,
+  horizontal split when there's no H1 to nest it under
 - Vim-style `hjkl` keys for slide navigation, mirroring the arrow keys
   (`h`/`k` previous, `j`/`l` next)
+
+### Changed
+
+- Default `slideSeparator` is now `auto` instead of `hr`. Notes that already
+  use `---` render identically; heading-only notes with no `---` (previously
+  a single slide) now split by heading automatically
 
 ### Fixed
 

@@ -7,7 +7,7 @@ export type ThemeName = (typeof THEMES)[number]
 export const TRANSITIONS = ['none', 'fade', 'slide', 'convex', 'concave', 'zoom'] as const
 export type TransitionName = (typeof TRANSITIONS)[number]
 
-export const SPLIT_MODES = ['hr', 'h1', 'h2'] as const
+export const SPLIT_MODES = ['auto', 'hr', 'h1', 'h2'] as const
 export type SplitMode = (typeof SPLIT_MODES)[number]
 
 export interface PluginConfigValues {
@@ -24,9 +24,11 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
   slideSeparator: {
     title: 'Slide separator',
     description:
-      'How to split a note into slides: "hr" splits on `---`, "h1"/"h2" split on headings',
+      'How to split a note into slides: "auto" picks the best rule per note ' +
+      '(`---` if present, otherwise the heading level actually used), "hr" ' +
+      'splits on `---`, "h1"/"h2" split on headings',
     type: 'string',
-    default: 'hr',
+    default: 'auto',
     enum: [...SPLIT_MODES],
     order: 1
   },

@@ -97,6 +97,15 @@ describe('prepareDeck', () => {
     expect(parts[1]).toContain('c')
   })
 
+  it('handles auto mode promoting H2 to horizontal when no H1 is present', () => {
+    const body = '## X\na\n## Y\nb'
+    const deck = prepareDeck(body, { ...pluginDefaults, slideSeparator: 'auto' })
+    expect(deck.slideCount).toBe(2)
+
+    const sections = slidifyOracle(deck.markdown, SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX)
+    expect(sections).toHaveLength(2)
+  })
+
   it('frontmatter separator override changes the split mode', () => {
     const body = '---\nseparator: h1\n---\n# A\ntext\n# B'
     const deck = prepareDeck(body, pluginDefaults)

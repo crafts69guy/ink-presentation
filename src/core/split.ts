@@ -30,12 +30,73 @@ const H2_RE = /^## /
 
 interface SplitOptions {
   mode: SplitMode
-  /** Allow `--` vertical separators (hr mode only; h2 mode is always vertical-aware). */
+  /** Allow `--` vertical separators (hr mode only; heading modes are always vertical-aware). */
   verticalSlides: boolean
+}
+
+/** What the main pass actually does, once `auto` has been resolved. */
+type ResolvedMode = { kind: 'hr' } | { kind: 'heading'; topRe: RegExp; subRe: RegExp | null }
+
+/** Fence-aware line visitor shared by the `auto` pre-scan (skips fenced content). */
+function forEachUnfencedLine(
+  lines: string[],
+  visit: (line: string, prevBlank: boolean) => void
+): void {
+  let inFence = false
+  let fenceMarker = ''
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] as string
+    const fenceMatch = FENCE_RE.exec(line)
+    if (fenceMatch) {
+      const marker = fenceMatch[1] as string
+      if (!inFence) {
+        inFence = true
+        fenceMarker = marker[0] as string
+      } else if (marker[0] === fenceMarker) {
+        inFence = false
+      }
+      continue
+    }
+    if (inFence) continue
+    const prevBlank = i === 0 || (lines[i - 1] ?? '').trim() === ''
+    visit(line, prevBlank)
+  }
+}
+
+/**
+ * Decide which concrete behavior `auto` resolves to for this note. A
+ * qualifying `---` always wins over headings (explicit authorial intent);
+ * among headings, H1 wins over a lone H2 — H2 is only promoted to a
+ * horizontal splitter when no H1 exists to nest it under.
+ */
+function resolveAutoMode(lines: string[]): ResolvedMode {
+  let hasHr = false
+  let hasH1 = false
+  let hasH2 = false
+
+  forEachUnfencedLine(lines, (line, prevBlank) => {
+    if (prevBlank && HR_RE.test(line)) hasHr = true
+    else if (H1_RE.test(line)) hasH1 = true
+    else if (H2_RE.test(line)) hasH2 = true
+  })
+
+  if (hasHr) return { kind: 'hr' }
+  if (hasH1) return { kind: 'heading', topRe: H1_RE, subRe: hasH2 ? H2_RE : null }
+  if (hasH2) return { kind: 'heading', topRe: H2_RE, subRe: null }
+  return { kind: 'heading', topRe: H1_RE, subRe: null }
+}
+
+function resolveMode(mode: Exclude<SplitMode, 'auto'>): ResolvedMode {
+  if (mode === 'hr') return { kind: 'hr' }
+  if (mode === 'h1') return { kind: 'heading', topRe: H1_RE, subRe: null }
+  return { kind: 'heading', topRe: H1_RE, subRe: H2_RE }
 }
 
 export function splitSlides(body: string, options: SplitOptions): SlideGroups {
   const lines = body.split(/\r?\n/)
+  const resolved: ResolvedMode =
+    options.mode === 'auto' ? resolveAutoMode(lines) : resolveMode(options.mode)
+
   const groups: SlideGroups = [[]]
   let currentLines: string[] = []
   let inFence = false
@@ -71,7 +132,7 @@ export function splitSlides(body: string, options: SplitOptions): SlideGroups {
       continue
     }
 
-    if (options.mode === 'hr') {
+    if (resolved.kind === 'hr') {
       const prevBlank = i === 0 || (lines[i - 1] ?? '').trim() === ''
       // A `---` directly after text is a Markdown setext heading, not a
       // thematic break — only blank-line-preceded separators split.
@@ -84,12 +145,12 @@ export function splitSlides(body: string, options: SplitOptions): SlideGroups {
         continue
       }
     } else {
-      if (H1_RE.test(line)) {
+      if (resolved.topRe.test(line)) {
         if (!isEmptySoFar(groups, currentLines)) startGroup()
         currentLines.push(line)
         continue
       }
-      if (options.mode === 'h2' && H2_RE.test(line)) {
+      if (resolved.subRe && resolved.subRe.test(line)) {
         if (!isEmptySoFar(groups, currentLines)) pushSlide()
         currentLines.push(line)
         continue

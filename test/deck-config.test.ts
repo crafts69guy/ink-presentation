@@ -38,6 +38,12 @@ describe('parseDeckConfig', () => {
     expect(warnings).toEqual([])
   })
 
+  it('accepts the auto separator value', () => {
+    const { config, warnings } = parseDeckConfig({ separator: 'auto' })
+    expect(config).toEqual({ separator: 'auto' })
+    expect(warnings).toEqual([])
+  })
+
   it('warns on invalid values but keeps the rest', () => {
     const { config, warnings } = parseDeckConfig({ theme: 'neon', transition: 'fade' })
     expect(config).toEqual({ transition: 'fade' })
