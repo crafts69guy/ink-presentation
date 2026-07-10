@@ -17,6 +17,11 @@
       "id": "note:JITp3s9Z",
       "title": "Ink-Presentation - Release Log",
       "owns": "milestone/commit traceability + release procedure"
+    },
+    "todo": {
+      "id": "note:tybGWYeO",
+      "title": "Ink-Presentation - Todo",
+      "owns": "ad-hoc task list outside the formal roadmap"
     }
   },
   "touchpoints": [
