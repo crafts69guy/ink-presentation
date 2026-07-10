@@ -32,14 +32,14 @@ Open a note, then press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> or select **
 
 | Key | Action |
 | --- | --- |
-| <kbd>→</kbd> / <kbd>↓</kbd> / <kbd>Space</kbd> / <kbd>PgDn</kbd> / <kbd>N</kbd> | Next slide |
-| <kbd>←</kbd> / <kbd>↑</kbd> / <kbd>PgUp</kbd> / <kbd>P</kbd> | Previous slide |
+| <kbd>→</kbd> / <kbd>↓</kbd> / <kbd>Space</kbd> / <kbd>PgDn</kbd> / <kbd>N</kbd> / <kbd>J</kbd> / <kbd>L</kbd> | Next slide |
+| <kbd>←</kbd> / <kbd>↑</kbd> / <kbd>PgUp</kbd> / <kbd>P</kbd> / <kbd>H</kbd> / <kbd>K</kbd> | Previous slide |
 | <kbd>Home</kbd> / <kbd>End</kbd> | First / last slide |
 | <kbd>O</kbd> | Overview grid |
 | <kbd>S</kbd> | Toggle speaker notes |
 | <kbd>F</kbd> | Toggle fullscreen |
 | <kbd>B</kbd> / <kbd>.</kbd> | Pause (black screen) |
-| <kbd>Esc</kbd> | Close overview → exit fullscreen → close presentation |
+| <kbd>Esc</kbd> | Close overview grid, or close the presentation (exits fullscreen too) |
 
 ### Writing slides
 
