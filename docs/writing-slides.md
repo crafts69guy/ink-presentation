@@ -101,7 +101,9 @@ plain text in the overlay.
 
 ## Limitations
 
-- Mermaid and math blocks render as plain highlighted code (v2 roadmap).
+- Mermaid diagrams render as SVG; a malformed diagram shows an inline error
+  instead of blocking the deck. Math blocks still render as plain highlighted
+  code (v2 roadmap).
 - Speaker notes show in-deck; there is no separate presenter window yet.
 - Slides are a snapshot: edits made while presenting appear the next time
   you open the deck.

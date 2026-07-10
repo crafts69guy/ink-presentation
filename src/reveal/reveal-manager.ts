@@ -47,7 +47,97 @@ const BASE_CSS = `
   width: 100%;
   height: 100%;
 }
+.reveal .mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+  border-radius: 12px;
+  /* Card look matching Inkdrop's own preview panel: a dot-grid over the
+   * code-block surface color, not something mermaid's theme controls. */
+  background-color: var(--mde-preview-codeblock-background-color, rgba(127, 127, 127, 0.15));
+  background-image: radial-gradient(circle, var(--border-color, rgba(127, 127, 127, 0.4)) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+.reveal .mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.reveal .mermaid-error {
+  color: #e06c75;
+  font-family: var(--r-code-font);
+  white-space: pre-wrap;
+}
 `
+
+/** Lazily imported once; re-initialized (cheap, no re-import) on every
+ * render so a theme/appearance change between decks is always reflected. */
+let mermaidModule: Promise<typeof import('mermaid')> | null = null
+
+async function loadMermaid(): Promise<typeof import('mermaid').default> {
+  mermaidModule ??= import('mermaid')
+  const { default: mermaid } = await mermaidModule
+  return mermaid
+}
+
+/**
+ * Reads the same app CSS custom properties `src/themes/inkdrop.css` maps
+ * onto Reveal's `--r-*` variables, resolved to concrete colors the same way
+ * `isAppDark()` probes `--editor-background` — mermaid computes its palette
+ * at render time and cannot follow live `var()` cascades the way the rest
+ * of the deck's CSS does.
+ */
+function resolveInkdropColors(): { background: string; text: string; border: string; accent: string; font: string } {
+  const probe = document.createElement('div')
+  probe.style.cssText = [
+    'position:absolute',
+    'visibility:hidden',
+    'pointer-events:none',
+    'background-color:var(--editor-background, var(--editor-background-color, #1c1c1c))',
+    'color:var(--text-color, #dddddd)',
+    'border-color:var(--border-color, rgba(127, 127, 127, 0.4))',
+    'outline-color:var(--primary-color, var(--link-color, #578af1))',
+    "font-family:var(--font-name, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif)"
+  ].join(';')
+  document.body.appendChild(probe)
+  const style = getComputedStyle(probe)
+  const colors = {
+    background: style.backgroundColor,
+    text: style.color,
+    border: style.borderColor,
+    accent: style.outlineColor,
+    font: style.fontFamily
+  }
+  probe.remove()
+  return colors
+}
+
+/**
+ * `inkdrop` theme: derive mermaid's palette from the live app colors so
+ * diagrams match the surrounding deck, same intent as `theme-inkdrop-css.ts`.
+ * Reveal classics (black/white/night/...): mermaid has no equivalent of
+ * those fixed palettes, so just pick its own light/dark built-in theme for
+ * contrast against the slide background.
+ */
+function mermaidThemeConfig(dark: boolean, inkdropNative: boolean): Record<string, unknown> {
+  if (!inkdropNative) return { theme: dark ? 'dark' : 'default' }
+
+  const colors = resolveInkdropColors()
+  return {
+    theme: 'base',
+    themeVariables: {
+      background: colors.background,
+      primaryColor: colors.background,
+      primaryTextColor: colors.text,
+      primaryBorderColor: colors.accent,
+      secondaryColor: colors.background,
+      tertiaryColor: colors.background,
+      lineColor: colors.border,
+      textColor: colors.text,
+      edgeLabelBackground: colors.background,
+      fontFamily: colors.font
+    }
+  }
+}
 
 /**
  * Owns the Reveal.js lifecycle inside a Shadow DOM attached to the host
@@ -74,7 +164,7 @@ export class RevealManager {
 
     const root = this.host.shadowRoot ?? this.host.attachShadow({ mode: 'open' })
     root.replaceChildren()
-    this.injectStyles(root)
+    const { dark, inkdropNative } = this.injectStyles(root)
     const viewport = this.buildDeckDom(root)
 
     const { options } = this.init
@@ -99,9 +189,18 @@ export class RevealManager {
       this.safeDestroyDeck(deck)
       return
     }
+    const diagramsRendered = await this.renderMermaidDiagrams(root, dark, inkdropNative)
+    if (this.state !== 'initializing') {
+      // Same guard as above, re-checked after the mermaid render's own await.
+      this.safeDestroyDeck(deck)
+      return
+    }
     this.highlightCodeBlocks(root)
     this.deck = deck
     this.state = 'ready'
+    // Diagrams change slide content height after Reveal already fit itself
+    // to the pre-diagram DOM.
+    if (diagramsRendered) deck.layout()
 
     const { initialSlide, onSlideChanged } = this.init
     if (initialSlide && (initialSlide.h > 0 || initialSlide.v > 0)) {
@@ -128,6 +227,53 @@ export class RevealManager {
     // overlay renders text only, so strip to textContent here.
     const notes = deck.getCurrentSlide()?.querySelector('aside.notes')?.textContent ?? ''
     this.init.onSlideChanged?.(notes.trim(), { h: indices.h, v: indices.v })
+  }
+
+  /**
+   * RevealMarkdown has converted the slides by now; replace mermaid fences
+   * with rendered SVG in place. Runs before highlightCodeBlocks() so
+   * replaced blocks (no longer `pre code`) are naturally skipped by hljs.
+   * Returns whether any diagram was rendered, so the caller knows to relayout.
+   */
+  private async renderMermaidDiagrams(root: ShadowRoot, dark: boolean, inkdropNative: boolean): Promise<boolean> {
+    // RevealMarkdown overrides marked's default code renderer and does NOT
+    // apply `langPrefix` ("language-"); the fence's info string becomes the
+    // class verbatim (`class="mermaid"`), unlike highlight.js's own
+    // language-detection which additionally recognizes bare class names.
+    const blocks = Array.from(root.querySelectorAll<HTMLElement>('pre code.mermaid'))
+    if (blocks.length === 0) return false
+
+    const mermaid = await loadMermaid()
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'strict',
+      ...mermaidThemeConfig(dark, inkdropNative)
+    })
+    let rendered = false
+    for (const [index, block] of blocks.entries()) {
+      // A slow multi-diagram note could still be mid-render when destroy()
+      // is called; bail out before touching the DOM further.
+      if (this.state !== 'initializing') return rendered
+
+      const source = block.textContent ?? ''
+      const pre = block.closest('pre') ?? block
+      try {
+        const { svg } = await mermaid.render(`mermaid-${index}-${Date.now()}`, source)
+        const wrapper = document.createElement('div')
+        wrapper.className = 'mermaid-diagram'
+        // securityLevel: 'strict' has mermaid sanitize the SVG internally
+        // (DOMPurify) before returning it, so injecting it here is safe.
+        wrapper.innerHTML = svg
+        pre.replaceWith(wrapper)
+      } catch (err) {
+        const errorNode = document.createElement('pre')
+        errorNode.className = 'mermaid-error'
+        errorNode.textContent = `Mermaid diagram error: ${err instanceof Error ? err.message : String(err)}`
+        pre.replaceWith(errorNode)
+      }
+      rendered = true
+    }
+    return rendered
   }
 
   /** RevealMarkdown has converted the slides by now; highlight in place. */
@@ -159,8 +305,10 @@ export class RevealManager {
     }
   }
 
-  private injectStyles(root: ShadowRoot): void {
+  /** Returns the resolved appearance so mermaid rendering can match it. */
+  private injectStyles(root: ShadowRoot): { dark: boolean; inkdropNative: boolean } {
     const theme = resolveTheme(this.init.options.theme)
+    const inkdropNative = theme.dark === 'auto'
     const dark = theme.dark === 'auto' ? isAppDark() : theme.dark
     const sheets = [
       resetCss,
@@ -175,6 +323,7 @@ export class RevealManager {
       style.textContent = prepareForShadowRoot(cssText)
       root.appendChild(style)
     }
+    return { dark, inkdropNative }
   }
 
   private buildDeckDom(root: ShadowRoot): HTMLElement {

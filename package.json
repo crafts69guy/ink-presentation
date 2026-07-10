@@ -24,6 +24,9 @@
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "mermaid": "^11.16.0"
+  },
   "devDependencies": {
     "@inkdropapp/types": "^0.0.9",
     "@types/event-kit": "^2.4.4",

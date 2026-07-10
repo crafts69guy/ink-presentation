@@ -136,6 +136,14 @@ plugin, `highlight.js/lib/common` (~40 languages — Reveal's highlight plugin
 inlines all of highlight.js and tripled the bundle), js-yaml, event-kit, and
 the generated CSS strings.
 
+`mermaid` is deliberately kept out of this figure: it's declared as a real
+`dependency` (not `devDependency`), listed in `tsdown.config.ts`'s `external`
+array so it's never inlined, and loaded via a cached `await import('mermaid')`
+only when a deck actually contains a `mermaid` fenced code block
+(`RevealManager.renderMermaidDiagrams`) — the same "don't pay for what you
+don't use" reasoning as `highlight.js/lib/common` above, just via lazy import
+instead of a narrower static subset.
+
 ## Dev-environment gotcha: canary data directory
 
 The Inkdrop v6 canary uses `~/Library/Application Support/inkdrop-canary/`,

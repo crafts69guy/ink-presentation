@@ -8,6 +8,12 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Mermaid diagram rendering in slides. Diagrams are rendered lazily (mermaid
+  is only loaded when a deck contains a `mermaid` code fence) and a malformed
+  diagram shows an inline error instead of blocking the deck. Diagram colors
+  follow the deck's theme: the `inkdrop` theme matches the live app palette
+  (light/dark, text, accent colors), other themes get mermaid's own
+  light/dark built-in for contrast
 - `auto` slide separator mode (now the default): picks `---` if present,
   otherwise splits on whichever heading level the note actually uses — H1
   (with H2 nested vertically if also present), or H2 promoted to a flat,

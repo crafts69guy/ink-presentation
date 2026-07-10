@@ -84,7 +84,8 @@ Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`,
 
 ## Known limitations
 
-- **Mermaid diagrams and math** render as plain code blocks (planned for v2)
+- **Mermaid diagrams** render as SVG; malformed diagrams show an inline error instead of blocking the deck
+- **Math** renders as plain code blocks (KaTeX support planned for v2)
 - **No popup speaker view** — notes show as an in-deck overlay (`S`); a separate presenter window is a v2 goal
 - Webfonts referenced by Reveal's built-in themes (League Gothic, Source Sans Pro) fall back to system fonts — fonts can't load inside a shadow root
 
@@ -118,10 +119,10 @@ upstream.
 
 ## Planned features
 
-Mermaid diagram rendering, KaTeX math, a popup speaker view, custom per-note
-CSS, live deck refresh while editing, and plugin-registry publication are on
-the radar for v2. PDF/HTML export is intentionally out of scope — Inkdrop's
-built-in note export already covers it.
+KaTeX math, a popup speaker view, custom per-note CSS, live deck refresh
+while editing, and plugin-registry publication are on the radar for v2. PDF/
+HTML export is intentionally out of scope — Inkdrop's built-in note export
+already covers it.
 
 ## License
 

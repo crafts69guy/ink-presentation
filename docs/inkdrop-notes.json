@@ -22,6 +22,11 @@
       "id": "note:tybGWYeO",
       "title": "Ink-Presentation - Todo",
       "owns": "ad-hoc task list outside the formal roadmap"
+    },
+    "featureDemo": {
+      "id": "note:miIb4DOV",
+      "title": "Ink-Presentation - Feature Demo",
+      "owns": "sample note meant to be presented; showcases shipped + planned features. Not a tracking note (outside the ownership contract) — pinned here for discoverability only"
     }
   },
   "touchpoints": [
