@@ -1,0 +1,37 @@
+{
+  "$comment": "Pinned Inkdrop note IDs for the project docs notebook. Agents: address notes by these IDs (never search-and-guess). Update this file if notes are recreated.",
+  "notebookId": "book:e1wyC-dV",
+  "notebookName": "Ink-Presentation",
+  "notes": {
+    "index": {
+      "id": "note:kONT4PLP",
+      "title": "Index - Ink-Presentation",
+      "sources": ["README.md"]
+    },
+    "architecture": {
+      "id": "note:P4NH8yZt",
+      "title": "Ink-Presentation - Architecture Overview",
+      "sources": ["docs/architecture.md"]
+    },
+    "decisions": {
+      "id": "note:gEW8G3qS",
+      "title": "Ink-Presentation - Design Decisions",
+      "sources": ["docs/architecture.md"]
+    },
+    "roadmap": {
+      "id": "note:ALMgdeuU",
+      "title": "Ink-Presentation - Roadmap",
+      "sources": ["README.md#roadmap"]
+    },
+    "releaseLog": {
+      "id": "note:JITp3s9Z",
+      "title": "Ink-Presentation - Release Log",
+      "sources": ["CHANGELOG.md"]
+    },
+    "devWorkflow": {
+      "id": "note:vFjtE4Cf",
+      "title": "Ink-Presentation - Dev Environment & Workflow",
+      "sources": ["README.md#development", "docs/architecture.md"]
+    }
+  }
+}
