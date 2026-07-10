@@ -11,10 +11,19 @@ import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
 import { getHighlightSheet, isAppDark, resolveTheme } from './themes'
 
+export interface SlidePosition {
+  h: number
+  v: number
+}
+
 export interface RevealManagerInit {
   /** Sentinel-joined markdown from the preprocessing pipeline. */
   markdown: string
   options: EffectiveDeckOptions
+  /** Restore position after a rebuild (settings/theme change mid-deck). */
+  initialSlide?: SlidePosition
+  /** Fired on ready and every slide change with the slide's speaker notes. */
+  onSlideChanged?: (notes: string, position: SlidePosition) => void
 }
 
 type ManagerState = 'idle' | 'initializing' | 'ready' | 'destroyed'
@@ -48,6 +57,7 @@ const BASE_CSS = `
 export class RevealManager {
   private deck: Reveal.Api | null = null
   private state: ManagerState = 'idle'
+  private resizeObserver: ResizeObserver | null = null
 
   constructor(
     private readonly host: HTMLElement,
@@ -92,6 +102,32 @@ export class RevealManager {
     this.highlightCodeBlocks(root)
     this.deck = deck
     this.state = 'ready'
+
+    const { initialSlide, onSlideChanged } = this.init
+    if (initialSlide && (initialSlide.h > 0 || initialSlide.v > 0)) {
+      deck.slide(initialSlide.h, initialSlide.v)
+    }
+    if (onSlideChanged) {
+      deck.on('slidechanged', () => this.notifySlideChanged())
+      this.notifySlideChanged()
+    }
+
+    // Reveal computes its scale from the container size; refit on resize
+    // (window resize, fullscreen enter/exit).
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.state === 'ready') this.deck?.layout()
+    })
+    this.resizeObserver.observe(this.host)
+  }
+
+  private notifySlideChanged(): void {
+    const deck = this.deck
+    if (!deck) return
+    const indices = deck.getIndices()
+    // Rendered notes HTML comes from the user's own note via marked; the
+    // overlay renders text only, so strip to textContent here.
+    const notes = deck.getCurrentSlide()?.querySelector('aside.notes')?.textContent ?? ''
+    this.init.onSlideChanged?.(notes.trim(), { h: indices.h, v: indices.v })
   }
 
   /** RevealMarkdown has converted the slides by now; highlight in place. */
@@ -105,6 +141,8 @@ export class RevealManager {
     if (this.state === 'destroyed') return
     const previous = this.state
     this.state = 'destroyed'
+    this.resizeObserver?.disconnect()
+    this.resizeObserver = null
     if (previous === 'ready' && this.deck) {
       this.safeDestroyDeck(this.deck)
     }

@@ -1,8 +1,39 @@
-// Only the overlay host is styled globally; everything inside the
+// Only the overlay shell is styled globally; everything inside the
 // presentation lives in a Shadow DOM and never leaks into app styles.
 .ink-presentation-overlay {
   position: fixed;
   inset: 0;
   z-index: 10000;
   background: #191919;
+}
+
+.ink-presentation-host {
+  width: 100%;
+  height: 100%;
+}
+
+.ink-presentation-notes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 30%;
+  overflow-y: auto;
+  padding: 0.75em 1.25em 1em;
+  background: var(--editor-drawer-background, rgba(20, 20, 20, 0.92));
+  color: var(--text-color, #dddddd);
+  border-top: 1px solid var(--border-color, rgba(127, 127, 127, 0.35));
+  font-size: 0.95rem;
+  line-height: 1.5;
+
+  .ink-presentation-notes-text {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .ink-presentation-notes-empty {
+    margin: 0;
+    opacity: 0.55;
+    font-style: italic;
+  }
 }
