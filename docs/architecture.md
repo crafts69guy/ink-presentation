@@ -101,7 +101,8 @@ Reveal runs with `keyboard: false`. `key-controller.ts` installs one
 window-level capture-phase keydown listener while the deck is open, maps keys
 to actions (pure `mapKeyToAction`, unit-tested), and stops propagation so
 Inkdrop keymaps never fire mid-presentation. Cmd/Ctrl/Alt combos pass
-through untouched. Esc semantics: overview → fullscreen → close.
+through untouched. Esc semantics: overview → close (exiting fullscreen along
+the way if active). `hjkl` mirror the arrow keys for vim-style navigation.
 
 ### Reveal lifecycle vs React 19
 

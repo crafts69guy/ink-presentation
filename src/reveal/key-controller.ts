@@ -35,11 +35,15 @@ export function mapKeyToAction(key: string, context: KeyContext): KeyAction | nu
     case ' ':
     case 'PageDown':
     case 'n':
+    case 'j':
+    case 'l':
       return 'next'
     case 'ArrowLeft':
     case 'ArrowUp':
     case 'PageUp':
     case 'p':
+    case 'h':
+    case 'k':
       return 'prev'
     case 'Home':
       return 'first'

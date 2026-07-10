@@ -6,6 +6,16 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Vim-style `hjkl` keys for slide navigation, mirroring the arrow keys
+  (`h`/`k` previous, `j`/`l` next)
+
+### Fixed
+
+- <kbd>Esc</kbd> now always closes the presentation, even while fullscreen
+  (previously required a second press)
+
 ## [0.1.0] - 2026-07-10
 
 First feature-complete v1 (not yet published to the plugin registry).
