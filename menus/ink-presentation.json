@@ -6,6 +6,10 @@
         {
           "label": "Toggle Presentation",
           "command": "ink-presentation:toggle"
+        },
+        {
+          "label": "Present Sample Deck",
+          "command": "ink-presentation:present-sample"
         }
       ]
     }

@@ -1,7 +1,8 @@
 import type { Environment, IInkdropPlugin } from '@inkdropapp/types'
-import { CompositeDisposable } from 'event-kit'
+import { CompositeDisposable, type Disposable } from 'event-kit'
 import { configSchema } from './config'
 import { setEnv } from './env'
+import { SAMPLE_DECK_BODY, SAMPLE_DECK_TITLE } from './sample-deck'
 import { PresentationView } from './ui/PresentationView'
 import { presentationEvents } from './ui/presentation-events'
 
@@ -17,6 +18,7 @@ interface EditingNoteSlice {
 class InkPresentationPlugin implements IInkdropPlugin {
   readonly config = configSchema
   private subscriptions: CompositeDisposable | null = null
+  private sampleCommandSubscription: Disposable | null = null
 
   activate(app: Environment): void {
     setEnv(app)
@@ -25,17 +27,34 @@ class InkPresentationPlugin implements IInkdropPlugin {
     this.subscriptions = new CompositeDisposable(
       app.commands.add(document.body, {
         'ink-presentation:toggle': () => this.toggle(app)
+      }),
+      app.config.observe('ink-presentation.showSampleCommand', (enabled: boolean) => {
+        this.sampleCommandSubscription?.dispose()
+        this.sampleCommandSubscription = enabled
+          ? app.commands.add(document.body, {
+              'ink-presentation:present-sample': () => this.presentSample()
+            })
+          : null
       })
     )
   }
 
   deactivate(app: Environment): void {
     presentationEvents.emitForceClose()
+    this.sampleCommandSubscription?.dispose()
+    this.sampleCommandSubscription = null
     this.subscriptions?.dispose()
     this.subscriptions = null
     app.layouts.removeComponentFromLayout('modal', COMPONENT_NAME)
     app.components.deleteClass(PresentationView, COMPONENT_NAME)
     setEnv(null)
+  }
+
+  private presentSample(): void {
+    presentationEvents.emitToggle({
+      title: SAMPLE_DECK_TITLE,
+      body: SAMPLE_DECK_BODY
+    })
   }
 
   private toggle(app: Environment): void {

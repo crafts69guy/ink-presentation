@@ -18,6 +18,7 @@ export interface PluginConfigValues {
   showSlideNumber: boolean
   showProgressBar: boolean
   verticalSlides: boolean
+  showSampleCommand: boolean
 }
 
 export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
@@ -70,6 +71,15 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
     type: 'boolean',
     default: false,
     order: 7
+  },
+  showSampleCommand: {
+    title: 'Show "Present Sample Deck" command',
+    description:
+      'Adds a command (and Plugins menu entry) to present a bundled sample ' +
+      'note showcasing the plugin\'s features, without touching your notes.',
+    type: 'boolean',
+    default: true,
+    order: 8
   }
 }
 
@@ -85,6 +95,7 @@ export function getAllConfig(): PluginConfigValues {
     autoFullscreen: getConfig('autoFullscreen'),
     showSlideNumber: getConfig('showSlideNumber'),
     showProgressBar: getConfig('showProgressBar'),
-    verticalSlides: getConfig('verticalSlides')
+    verticalSlides: getConfig('verticalSlides'),
+    showSampleCommand: getConfig('showSampleCommand')
   }
 }

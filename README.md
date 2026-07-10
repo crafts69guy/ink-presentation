@@ -28,18 +28,24 @@ ln -sfn "$PWD" ~/Library/Application\ Support/inkdrop/packages/ink-presentation
 
 Open a note, then press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> or select **Plugins ▸ Toggle Presentation**.
 
+New to the plugin? Run **Plugins ▸ Present Sample Deck** (or the
+`ink-presentation:present-sample` command) to present a bundled demo note
+that showcases every feature below — no note of your own required. Disable
+it via the "Show 'Present Sample Deck' command" setting if you don't want
+it in the command palette.
+
 ### Keys while presenting
 
-| Key | Action |
-| --- | --- |
-| <kbd>→</kbd> / <kbd>↓</kbd> / <kbd>Space</kbd> / <kbd>PgDn</kbd> / <kbd>N</kbd> / <kbd>J</kbd> / <kbd>L</kbd> | Next slide |
-| <kbd>←</kbd> / <kbd>↑</kbd> / <kbd>PgUp</kbd> / <kbd>P</kbd> / <kbd>H</kbd> / <kbd>K</kbd> | Previous slide |
-| <kbd>Home</kbd> / <kbd>End</kbd> | First / last slide |
-| <kbd>O</kbd> | Overview grid |
-| <kbd>S</kbd> | Toggle speaker notes |
-| <kbd>F</kbd> | Toggle fullscreen |
-| <kbd>B</kbd> / <kbd>.</kbd> | Pause (black screen) |
-| <kbd>Esc</kbd> | Close overview grid, or close the presentation (exits fullscreen too) |
+| Key                                                                                                           | Action                                                                |
+| ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| <kbd>→</kbd> / <kbd>↓</kbd> / <kbd>Space</kbd> / <kbd>PgDn</kbd> / <kbd>N</kbd> / <kbd>J</kbd> / <kbd>L</kbd> | Next slide                                                            |
+| <kbd>←</kbd> / <kbd>↑</kbd> / <kbd>PgUp</kbd> / <kbd>P</kbd> / <kbd>H</kbd> / <kbd>K</kbd>                    | Previous slide                                                        |
+| <kbd>Home</kbd> / <kbd>End</kbd>                                                                              | First / last slide                                                    |
+| <kbd>O</kbd>                                                                                                  | Overview grid                                                         |
+| <kbd>S</kbd>                                                                                                  | Toggle speaker notes                                                  |
+| <kbd>F</kbd>                                                                                                  | Toggle fullscreen                                                     |
+| <kbd>B</kbd> / <kbd>.</kbd>                                                                                   | Pause (black screen)                                                  |
+| <kbd>Esc</kbd>                                                                                                | Close overview grid, or close the presentation (exits fullscreen too) |
 
 ### Writing slides
 
@@ -60,7 +66,7 @@ Intro slide
 ## Code
 
 ```js
-const answer = 42
+const answer = 42;
 ```
 
 <!-- note: mention the benchmark here -->
@@ -70,15 +76,16 @@ const answer = 42
 
 **Preferences ▸ Plugins ▸ ink-presentation**
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| Slide separator | `hr` | `hr` splits on `---`; `h1`/`h2` split on headings (`h2` stacks H2s vertically) |
-| Theme | `inkdrop` | `inkdrop` follows the app theme; also black, white, league, night, serif, simple |
-| Slide transition | `slide` | none / fade / slide / convex / concave / zoom |
-| Enter fullscreen automatically | on | |
-| Show slide number | on | |
-| Show progress bar | on | |
-| Vertical slides | off | Enables `--` as a vertical separator in `hr` mode |
+| Setting                            | Default   | Description                                                                                 |
+| ---------------------------------- | --------- | ------------------------------------------------------------------------------------------- |
+| Slide separator                    | `hr`      | `hr` splits on `---`; `h1`/`h2` split on headings (`h2` stacks H2s vertically)              |
+| Theme                              | `inkdrop` | `inkdrop` follows the app theme; also black, white, league, night, serif, simple            |
+| Slide transition                   | `slide`   | none / fade / slide / convex / concave / zoom                                               |
+| Enter fullscreen automatically     | on        |                                                                                             |
+| Show slide number                  | on        |                                                                                             |
+| Show progress bar                  | on        |                                                                                             |
+| Vertical slides                    | off       | Enables `--` as a vertical separator in `hr` mode                                           |
+| Show "Present Sample Deck" command | on        | Adds a command/menu entry to present a bundled sample note showcasing the plugin's features |
 
 Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`, `verticalSlides`) override these per note.
 
@@ -119,10 +126,13 @@ upstream.
 
 ## Planned features
 
-KaTeX math, a popup speaker view, custom per-note CSS, live deck refresh
-while editing, and plugin-registry publication are on the radar for v2. PDF/
-HTML export is intentionally out of scope — Inkdrop's built-in note export
-already covers it.
+- [ ] KaTeX math rendering in slides
+- [ ] Popup speaker view
+- [ ] Custom per-note CSS via frontmatter
+- [ ] Auto-refresh the deck while editing, mid-presentation
+- [ ] Plugin-registry publication
+
+PDF/HTML export is intentionally out of scope — Inkdrop's built-in note export already covers it.
 
 ## License
 

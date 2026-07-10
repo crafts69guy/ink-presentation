@@ -11,7 +11,8 @@ const pluginDefaults: PluginConfigValues = {
   autoFullscreen: true,
   showSlideNumber: true,
   showProgressBar: true,
-  verticalSlides: false
+  verticalSlides: false,
+  showSampleCommand: true
 }
 
 /**

@@ -20,6 +20,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
   horizontal split when there's no H1 to nest it under
 - Vim-style `hjkl` keys for slide navigation, mirroring the arrow keys
   (`h`/`k` previous, `j`/`l` next)
+- `ink-presentation:present-sample` command (**Plugins ▸ Present Sample
+  Deck**) presents a bundled demo note showcasing the plugin's features,
+  without needing a note of your own. Gated by the new "Show 'Present Sample
+  Deck' command" setting (on by default)
 
 ### Changed
 
