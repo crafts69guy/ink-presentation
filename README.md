@@ -6,6 +6,7 @@ Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slide
 - ✂️ **Flexible slide splitting** — `---` breaks, or automatic `#`/`##` heading splitting with vertical stacks
 - 🧮 **Diagrams & math** — Mermaid diagrams and KaTeX math (`$…$` / `$$…$$`), both loaded lazily only when a note uses them
 - 🗒️ **Speaker notes** — `<!-- note: ... -->` comments or `Note:` lines, shown in an in-deck overlay
+- 🪞 **Speaker view** — press <kbd>V</kbd> for a separate synced window with current + next slide, notes, slide counter, and a timer
 - 🧱 **Code-fence aware** — `---`, `#`, and `Note:` inside code blocks never break your slides
 - ⚙️ **Per-note config** — override theme, transition, and splitting via YAML frontmatter
 - 🔒 **Fully isolated** — the deck renders in a Shadow DOM; plugin styles never leak into the app
@@ -44,6 +45,7 @@ it in the command palette.
 | <kbd>Home</kbd> / <kbd>End</kbd>                                                                              | First / last slide                                                    |
 | <kbd>O</kbd>                                                                                                  | Overview grid                                                         |
 | <kbd>S</kbd>                                                                                                  | Toggle speaker notes                                                  |
+| <kbd>V</kbd>                                                                                                  | Open the speaker view window (current + next slide, notes, timer)    |
 | <kbd>F</kbd>                                                                                                  | Toggle fullscreen                                                     |
 | <kbd>B</kbd> / <kbd>.</kbd>                                                                                   | Pause (black screen)                                                  |
 | <kbd>Esc</kbd>                                                                                                | Close overview grid, or close the presentation (exits fullscreen too) |
@@ -94,7 +96,7 @@ Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`,
 
 - **Mermaid diagrams** render as SVG; malformed diagrams show an inline error instead of blocking the deck
 - **Math** delimiters follow remark-math rules — `$` must hug the expression (so `$5 and $10` stays prose), `\$` escapes a literal dollar, and math is not detected inside code or 4-space-indented lines. Invalid TeX renders as red source text
-- **No popup speaker view** — notes show as an in-deck overlay (`S`); a separate presenter window is a v2 goal
+- **Speaker view** rides on undocumented Inkdrop internals (the app's own `create-simple-window` and `broadcast-command` IPC, discovered in v6 canary.21) — if a future Inkdrop build changes them, <kbd>V</kbd> shows an error notification instead of a window
 - Webfonts referenced by Reveal's built-in themes (League Gothic, Source Sans Pro) fall back to system fonts — fonts can't load inside a shadow root
 
 ## Development
@@ -128,7 +130,7 @@ upstream.
 ## Planned features
 
 - [x] KaTeX math rendering in slides — shipped
-- [ ] Popup speaker view
+- [x] Popup speaker view — shipped
 - [ ] Custom per-note CSS via frontmatter
 - [ ] Auto-refresh the deck while editing, mid-presentation
 - [ ] Plugin-registry publication

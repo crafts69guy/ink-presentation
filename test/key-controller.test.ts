@@ -38,6 +38,7 @@ describe('mapKeyToAction', () => {
     expect(mapKeyToAction('s', noModifier)).toBe('toggle-notes');
     expect(mapKeyToAction('.', noModifier)).toBe('toggle-pause');
     expect(mapKeyToAction('b', noModifier)).toBe('toggle-pause');
+    expect(mapKeyToAction('v', noModifier)).toBe('speaker-view');
     expect(mapKeyToAction('Escape', noModifier)).toBe('escape');
   });
 

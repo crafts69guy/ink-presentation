@@ -28,7 +28,8 @@ toggle the presentation to see the rest of the demo properly.
 > "Slides are just notes." — a happy user, probably
 
 Note: everything from this line to the end of the slide is also a speaker
-note — press S while presenting to see it.
+note — press S while presenting to see it, or V to open the speaker view
+window with slides, notes, and a timer.
 
 # Syntax-highlighted code
 
@@ -101,7 +102,7 @@ No frontmatter override needed for this — \`auto\` is the plugin default.
 | Speaker notes           | shipped     |
 | Themes (app + classics) | shipped     |
 | KaTeX math               | shipped |
-| Popup speaker view        | planned |
+| Speaker view window       | shipped |
 | Custom per-note CSS         | planned |
 | Live deck refresh while editing | planned |
 

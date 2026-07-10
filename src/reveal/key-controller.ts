@@ -15,6 +15,7 @@ export type KeyAction =
   | 'toggle-fullscreen'
   | 'toggle-notes'
   | 'toggle-pause'
+  | 'speaker-view'
   | 'escape'
 
 export interface KeyContext {
@@ -58,6 +59,8 @@ export function mapKeyToAction(key: string, context: KeyContext): KeyAction | nu
     case '.':
     case 'b':
       return 'toggle-pause'
+    case 'v':
+      return 'speaker-view'
     case 'Escape':
       return 'escape'
     default:

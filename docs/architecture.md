@@ -128,6 +128,36 @@ Inkdrop keymaps never fire mid-presentation. Cmd/Ctrl/Alt combos pass
 through untouched. Esc semantics: overview → close (exiting fullscreen along
 the way if active). `hjkl` mirror the arrow keys for vim-style navigation.
 
+### Speaker view: a second app window, driven over broadcast IPC
+
+There is no public BrowserWindow API for plugins, and `window.open` is
+hard-denied by the main process (it opens the URL externally). The speaker
+view instead composes three of the app's own internal surfaces (found by
+inspecting v6 canary.21's app.asar — undocumented, so every call degrades to
+an error notification if it vanishes):
+
+1. `create-simple-window` IPC opens a frameless, distraction-free app window
+   whose `runCommands` are dispatched once that window's app is ready —
+   after packages activate, so the plugin's `speaker-enter` command exists
+   there (the app's quick-note feature uses the same mechanism).
+2. `broadcast-command` IPC relays a command dispatch into every window; it
+   is the transport for all speaker traffic, one command
+   (`ink-presentation:speaker-message`) carrying a validated payload.
+3. `window:close` IPC lets the speaker window close itself.
+
+`core/speaker-protocol.ts` (pure, unit-tested) defines and validates the
+messages. Broadcasts arrive in *all* windows including the sender, so every
+message carries a `sessionId` and a per-window `from` id for echo/foreign
+filtering. State flows one way — the presenter answers `hello` with `init`
+(prepared markdown + options + position, re-sent on every rebuild) and
+streams `position` under a monotonic `seq` gate; the speaker window only
+sends `nav` requests and lifecycle signals (`hello`/`bye`) — which makes
+echo loops structurally impossible. `SpeakerView` (mounted in every
+window's `modal` region, active only after a `speaker-enter` boot) renders
+two non-interactive mini `RevealManager` decks from the same sentinel
+markdown: one at the presenter's position, one advanced a step with
+Reveal's own `next()` ordering.
+
 ### Reveal lifecycle vs React 19
 
 React renders only the overlay shell; `RevealManager` builds the deck DOM

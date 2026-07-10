@@ -12,7 +12,8 @@ export default defineConfig({
     // bundle budget for the common case of decks without diagrams or math.
     // node:* builtins resolve natively in the Electron renderer (used by
     // katex-assets.ts to read KaTeX's CSS/fonts off disk at runtime).
-    neverBundle: ['react', 'react-dom', 'inkdrop', 'mermaid', 'katex', 'node:fs', 'node:module', 'node:path'],
+    // electron is the host's own module (ipcRenderer for the speaker view).
+    neverBundle: ['react', 'react-dom', 'inkdrop', 'electron', 'mermaid', 'katex', 'node:fs', 'node:module', 'node:path'],
     alwaysBundle: ['reveal.js', 'js-yaml', 'event-kit', 'highlight.js']
   },
   sourcemap: true,

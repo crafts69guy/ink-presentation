@@ -8,6 +8,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Speaker view: press <kbd>V</kbd> while presenting to open a separate,
+  synced window showing the current slide, the upcoming slide, speaker
+  notes, a slide counter, wall clock, and a resettable elapsed timer.
+  Navigation works from either window. Built on Inkdrop's own cross-window
+  IPC (`create-simple-window` + `broadcast-command`); since those internals
+  are undocumented, the plugin degrades to an error notification if a
+  future Inkdrop build changes them
 - KaTeX math rendering in slides: `$inline$` and `$$display$$` TeX, the same
   delimiters as Inkdrop's math plugin, with remark-math strictness so prose
   like `costs $5 and $10` is never misread as math (`\$` escapes a literal

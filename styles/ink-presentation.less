@@ -37,3 +37,163 @@
     font-style: italic;
   }
 }
+
+// Speaker view (frameless secondary window; the header doubles as the
+// window drag region). Decks inside are Shadow-DOM isolated like the main
+// presentation; only the shell is styled here.
+.ink-speaker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-background, #191919);
+  color: var(--text-color, #dddddd);
+}
+
+.ink-speaker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.6em 1em 0.6em 5.5em; // left space for macOS traffic lights
+  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, 0.35));
+  -webkit-app-region: drag;
+  user-select: none;
+
+  .ink-speaker-title {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ink-speaker-meta {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ink-speaker-elapsed {
+    -webkit-app-region: no-drag;
+    font-variant-numeric: tabular-nums;
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--border-color, rgba(127, 127, 127, 0.4));
+    border-radius: 4px;
+    padding: 0.15em 0.6em;
+    cursor: pointer;
+  }
+}
+
+.ink-speaker-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0.75em;
+  padding: 0.75em;
+}
+
+.ink-speaker-current {
+  flex: 2;
+  min-width: 0;
+  border: 1px solid var(--border-color, rgba(127, 127, 127, 0.35));
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ink-speaker-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.ink-speaker-deck {
+  width: 100%;
+  height: 100%;
+  pointer-events: none; // previews follow the presenter; never interactive
+}
+
+.ink-speaker-pane-label {
+  margin: 0 0 0.35em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.ink-speaker-next {
+  display: flex;
+  flex-direction: column;
+  height: 38%;
+
+  .ink-speaker-next-frame {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    border: 1px solid var(--border-color, rgba(127, 127, 127, 0.35));
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .ink-speaker-end-badge {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    color: #ffffff;
+    font-weight: 600;
+  }
+}
+
+.ink-speaker-notes {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  .ink-speaker-notes-text,
+  .ink-speaker-notes-empty {
+    margin: 0;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .ink-speaker-notes-empty {
+    opacity: 0.55;
+    font-style: italic;
+  }
+}
+
+.ink-speaker-controls {
+  display: flex;
+  gap: 0.5em;
+
+  button {
+    flex: 1;
+    padding: 0.45em 0;
+    background: var(--editor-drawer-background, rgba(127, 127, 127, 0.15));
+    color: inherit;
+    border: 1px solid var(--border-color, rgba(127, 127, 127, 0.4));
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+}
+
+.ink-speaker-waiting {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em;
+  text-align: center;
+  opacity: 0.7;
+}

@@ -91,6 +91,12 @@ Note: everything from this line to the end of the slide is also a note
 Multiple notes on one slide are merged into a single block. Notes render as
 plain text in the overlay.
 
+Press <kbd>V</kbd> while presenting to open the **speaker view** — a
+separate window with the current slide, the upcoming slide, your notes, a
+slide counter, wall clock, and an elapsed timer (click it to reset). It
+follows the presentation live, and its arrow keys / buttons drive the main
+deck. <kbd>Esc</kbd> closes it; it also closes with the presentation.
+
 ## Math (KaTeX)
 
 Inline `$…$` and display `$$…$$` TeX render via KaTeX — the same delimiters
@@ -128,6 +134,8 @@ KaTeX (and its fonts) load only when a note actually contains math.
 
 - Mermaid diagrams render as SVG; a malformed diagram shows an inline error
   instead of blocking the deck.
-- Speaker notes show in-deck; there is no separate presenter window yet.
+- The speaker view window relies on undocumented Inkdrop internals; if a
+  future Inkdrop build changes them, <kbd>V</kbd> shows an error
+  notification instead of a window.
 - Slides are a snapshot: edits made while presenting appear the next time
   you open the deck.

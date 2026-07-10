@@ -4,11 +4,21 @@ import { CompositeDisposable } from 'event-kit';
 import React, { useEffect, useRef, useState } from 'react';
 import { getAllConfig } from '../config';
 import { prepareDeck } from '../core/pipeline';
+import { createOriginId } from '../core/speaker-protocol';
 import { getEnv } from '../env';
 import { bindKeys, type KeyAction } from '../reveal/key-controller';
 import { RevealManager, type SlidePosition } from '../reveal/reveal-manager';
+import { broadcastSpeakerMessage, openSpeakerWindow, WINDOW_ORIGIN_ID } from '../speaker/bridge';
 import { NotesOverlay } from './NotesOverlay';
 import { presentationEvents, type PresentationNote } from './presentation-events';
+import { speakerEvents } from './speaker-events';
+
+/** Presenter-side speaker session: set when the user opens a speaker window,
+ * `alive` once that window has said hello. */
+interface SpeakerSession {
+  sessionId: string;
+  alive: boolean;
+}
 
 function exitFullscreenIfActive(): void {
   if (document.fullscreenElement) {
@@ -30,6 +40,10 @@ export function PresentationView() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   // Survives rebuilds so a settings change doesn't jump back to slide 1.
   const positionRef = useRef<SlidePosition>({ h: 0, v: 0 });
+  // Speaker window pairing; survives rebuilds, cleared when the deck closes.
+  const speakerRef = useRef<SpeakerSession | null>(null);
+  // Monotonic sequence for init/position broadcasts (echo/stale protection).
+  const seqRef = useRef(0);
 
   useEffect(() => {
     const subscriptions = new CompositeDisposable(
@@ -47,6 +61,24 @@ export function PresentationView() {
     positionRef.current = { h: 0, v: 0 };
     setNotesVisible(false);
     setCurrentNotes('');
+  }, [note]);
+
+  // Speaker session lives exactly as long as the presentation (not the
+  // deck instance — rebuilds must keep the speaker window attached). On
+  // close, tell the speaker window to shut itself down.
+  useEffect(() => {
+    if (!note) return;
+    return () => {
+      const session = speakerRef.current;
+      if (session) {
+        broadcastSpeakerMessage({
+          kind: 'end',
+          sessionId: session.sessionId,
+          from: WINDOW_ORIGIN_ID,
+        });
+        speakerRef.current = null;
+      }
+    };
   }, [note]);
 
   useEffect(() => {
@@ -85,13 +117,71 @@ export function PresentationView() {
       onSlideChanged: (notes, position) => {
         positionRef.current = position;
         setCurrentNotes(notes);
+        const session = speakerRef.current;
+        if (session?.alive) {
+          broadcastSpeakerMessage({
+            kind: 'position',
+            sessionId: session.sessionId,
+            from: WINDOW_ORIGIN_ID,
+            seq: ++seqRef.current,
+            position,
+          });
+        }
       },
+    });
+
+    // Full deck state for the speaker window: sent on hello, and again after
+    // every rebuild (markdown/options may have changed with the settings).
+    const sendSpeakerInit = () => {
+      const session = speakerRef.current;
+      if (!session) return;
+      broadcastSpeakerMessage({
+        kind: 'init',
+        sessionId: session.sessionId,
+        from: WINDOW_ORIGIN_ID,
+        seq: ++seqRef.current,
+        title: note.title,
+        markdown: prepared.markdown,
+        options: prepared.options,
+        position: positionRef.current,
+      });
+    };
+
+    const speakerSubscription = speakerEvents.onMessage(message => {
+      const session = speakerRef.current;
+      if (
+        !session ||
+        message.sessionId !== session.sessionId ||
+        message.from === WINDOW_ORIGIN_ID
+      ) {
+        return;
+      }
+      switch (message.kind) {
+        case 'hello':
+          session.alive = true;
+          sendSpeakerInit();
+          break;
+        case 'nav':
+          handleAction(message.action);
+          break;
+        case 'bye':
+          session.alive = false;
+          break;
+        default:
+          // init/position/end originate from presenters, not speakers.
+          break;
+      }
     });
 
     manager
       .initialize()
       .then(() => {
-        if (cancelled) manager.destroy();
+        if (cancelled) {
+          manager.destroy();
+          return;
+        }
+        // Rebuild with a speaker attached: hand it the fresh deck.
+        if (speakerRef.current?.alive) sendSpeakerInit();
       })
       .catch((error: unknown) => {
         getEnv().notifications.addError('ink-presentation', {
@@ -139,6 +229,9 @@ export function PresentationView() {
         case 'toggle-pause':
           deck?.togglePause();
           break;
+        case 'speaker-view':
+          openSpeakerView();
+          break;
         case 'escape':
           if (deck?.isOverview()) {
             deck.toggleOverview(false);
@@ -152,11 +245,33 @@ export function PresentationView() {
           break;
       }
     };
+    const openSpeakerView = (): void => {
+      if (speakerRef.current?.alive) {
+        getEnv().notifications.addInfo('ink-presentation', {
+          detail: 'Speaker view is already open.',
+          dismissable: true,
+        });
+        return;
+      }
+      const sessionId = createOriginId();
+      speakerRef.current = { sessionId, alive: false };
+      openSpeakerWindow(sessionId).catch((error: unknown) => {
+        // The undocumented create-simple-window IPC may vanish in a future
+        // canary; fail with a message instead of a dead keypress.
+        speakerRef.current = null;
+        getEnv().notifications.addError('ink-presentation', {
+          detail: `Could not open the speaker view: ${String(error)}`,
+          dismissable: true,
+        });
+      });
+    };
+
     const unbindKeys = bindKeys(handleAction);
 
     return () => {
       cancelled = true;
       unbindKeys();
+      speakerSubscription.dispose();
       manager.destroy();
     };
   }, [note, deckKey]);
