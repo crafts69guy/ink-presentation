@@ -142,11 +142,11 @@ export function PresentationView() {
         case 'escape':
           if (deck?.isOverview()) {
             deck.toggleOverview(false);
-          } else if (document.fullscreenElement) {
-            // Chromium usually exits fullscreen on Esc before we see the
-            // event; if the flag is still set, exit but keep presenting.
-            exitFullscreenIfActive();
           } else {
+            // Chromium usually exits fullscreen on Esc before we see the
+            // event; call this regardless so a lingering flag doesn't keep
+            // the presentation stuck in fullscreen after close.
+            exitFullscreenIfActive();
             setNote(null);
           }
           break;
