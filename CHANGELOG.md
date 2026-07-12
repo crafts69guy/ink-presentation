@@ -4,6 +4,45 @@ All notable changes to ink-presentation are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Security
+
+- Note-authored HTML in slides is now sanitized with DOMPurify after
+  RevealMarkdown converts it: `<script>`, `<iframe>`, inline event handlers,
+  `javascript:` URLs, inline `<style>`, and `data-background-iframe` slide
+  attributes are stripped. Presenting a synced or shared note can no longer
+  execute markup it carries; benign inline HTML, images, math placeholders,
+  mermaid fences, and code highlighting are unaffected. The speaker view's
+  mini decks enforce the same pass independently
+
+### Changed
+
+- Slides now hydrate lazily: Mermaid diagrams, KaTeX math, and code
+  highlighting render for the visible slide and its neighbors first, then
+  fill in during idle time — a large deck opens near-instantly instead of
+  waiting for every diagram in the note. Auto-refresh rebuilds only pay for
+  the visible slides
+- The speaker view no longer re-renders its mini decks when a presenter
+  rebuild carries an unchanged deck, and its previews skip background
+  hydration entirely
+
+### Fixed
+
+- A mermaid module load failure (missing or corrupt install) now shows an
+  inline error per diagram instead of closing the whole presentation
+- Concurrent mermaid renders (speaker view's two previews) can no longer
+  collide on render element ids or interleave global mermaid configuration
+
+### Internal
+
+- oxfmt is pinned as a devDependency with a repo-style config, the codebase
+  is formatted once, and CI now runs a format check
+- New jsdom-based vitest project covers the DOM layer: sanitization,
+  hydration scheduling, mermaid degradation, and keyboard capture
+- package.json `files` keeps the 1.2 MB sourcemap out of any published
+  package
+
 ## [0.2.0] - 2026-07-12
 
 The v2 feature milestone: everything from the roadmap that isn't blocked
