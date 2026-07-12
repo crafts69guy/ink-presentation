@@ -16,7 +16,15 @@ Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slide
 
 ## Install
 
-Not yet on the plugin registry (see [Publishing](#publishing)). Manual install:
+In Inkdrop, open **Preferences ▸ Plugins**, search for `ink-presentation`,
+and install — or from a terminal:
+
+```bash
+ipm install ink-presentation
+```
+
+<details>
+<summary>Install from source instead</summary>
 
 ```bash
 git clone https://github.com/crafts69guy/ink-presentation.git
@@ -28,6 +36,8 @@ ln -sfn "$PWD" ~/Library/Application\ Support/inkdrop/packages/ink-presentation
 > **Inkdrop v6 canary:** the canary build keeps its data in `inkdrop-canary`
 > instead of `inkdrop` — link into
 > `~/Library/Application Support/inkdrop-canary/packages/ink-presentation`.
+
+</details>
 
 ## Usage
 
@@ -132,19 +142,20 @@ Docs for contributors:
 
 ## Publishing
 
-Not published to the plugin registry for now — install from GitHub as
-described above. For future reference: `ipm publish` is git-tag driven
-(`ipm publish --dry-run` validates without publishing) and requires an
-Inkdrop plugin developer license, whose issuance is currently paused
-upstream.
+Published to the Inkdrop plugin registry. Releases are cut with
+`ipm publish` (validate first with `ipm publish --dry-run`); the version and
+git tag are managed in the repo (see `docs/verifying.md` for the pre-release
+in-app checklist).
 
 ## Planned features
 
-- [x] KaTeX math rendering in slides — shipped
-- [x] Popup speaker view — shipped
-- [x] Custom per-note CSS via frontmatter — shipped
-- [x] Auto-refresh the deck while editing, mid-presentation — shipped
-- [ ] Plugin-registry publication
+Everything from the roadmap has shipped:
+
+- [x] KaTeX math rendering in slides
+- [x] Popup speaker view
+- [x] Custom per-note CSS via frontmatter
+- [x] Auto-refresh the deck while editing, mid-presentation
+- [x] Plugin-registry publication
 
 PDF/HTML export is intentionally out of scope — Inkdrop's built-in note export already covers it.
 
