@@ -1,6 +1,6 @@
 {
   "name": "ink-presentation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Present your Markdown notes as beautiful Reveal.js slideshows inside Inkdrop",
   "main": "./lib/index.js",
   "repository": "https://github.com/crafts69guy/ink-presentation",

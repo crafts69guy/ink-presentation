@@ -4,7 +4,10 @@ All notable changes to ink-presentation are documented here. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-12
+
+The v2 feature milestone: everything from the roadmap that isn't blocked
+upstream (registry publication still is). Install from GitHub as before.
 
 ### Added
 
