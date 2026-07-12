@@ -2,7 +2,7 @@ import { CompositeDisposable } from 'event-kit';
 // Classic JSX transform: the built output must only require 'react', which is
 // the module the Inkdrop host is known to provide ('react/jsx-runtime' isn't).
 import React, { useEffect, useRef, useState } from 'react';
-import { getAllConfig } from '../config';
+import { getAllConfig, getConfig } from '../config';
 import { prepareDeck } from '../core/pipeline';
 import { createOriginId } from '../core/speaker-protocol';
 import { getEnv } from '../env';
@@ -20,6 +20,17 @@ interface SpeakerSession {
   alive: boolean;
 }
 
+/** The slice of app state the auto-refresh subscription reads. */
+interface EditingNoteState {
+  editingNote?: {
+    _id?: string;
+    body?: string;
+  } | null;
+}
+
+/** Coalesce keystroke-by-keystroke store updates into one rebuild. */
+const REFRESH_DEBOUNCE_MS = 400;
+
 function exitFullscreenIfActive(): void {
   if (document.fullscreenElement) {
     document.exitFullscreen().catch(() => {
@@ -36,6 +47,8 @@ export function PresentationView() {
   const [deckKey, setDeckKey] = useState(0);
   const [notesVisible, setNotesVisible] = useState(false);
   const [currentNotes, setCurrentNotes] = useState('');
+  // Live note body from the auto-refresh subscription; null = use note.body.
+  const [refreshedBody, setRefreshedBody] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<HTMLDivElement | null>(null);
   // Survives rebuilds so a settings change doesn't jump back to slide 1.
@@ -44,6 +57,12 @@ export function PresentationView() {
   const speakerRef = useRef<SpeakerSession | null>(null);
   // Monotonic sequence for init/position broadcasts (echo/stale protection).
   const seqRef = useRef(0);
+  // Body currently on screen — the auto-refresh listener compares against
+  // this so redundant store emissions don't schedule rebuilds.
+  const lastBodyRef = useRef('');
+  // Last warning set already shown; auto-refresh rebuilds must not re-toast
+  // identical warnings on every keystroke (mid-edit YAML is often invalid).
+  const lastWarningsRef = useRef('');
 
   useEffect(() => {
     const subscriptions = new CompositeDisposable(
@@ -61,6 +80,41 @@ export function PresentationView() {
     positionRef.current = { h: 0, v: 0 };
     setNotesVisible(false);
     setCurrentNotes('');
+    setRefreshedBody(null);
+    lastBodyRef.current = note.body;
+    lastWarningsRef.current = '';
+  }, [note]);
+
+  // Auto-refresh: while presenting a real note (the sample deck has no id),
+  // follow the store's editingNote — Inkdrop reloads it there when the note
+  // changes in another window or arrives via sync (and never while this
+  // window's editor is dirty, which cannot happen under the overlay anyway).
+  // The rebuild goes through refreshedBody → deck effect, so slide position
+  // and the speaker window survive exactly like a settings rebuild.
+  useEffect(() => {
+    if (!note?.id) return;
+    const noteId = note.id;
+    const store = getEnv().store;
+    let timer: number | null = null;
+
+    const unsubscribe = store.subscribe(() => {
+      if (!getConfig('autoRefreshWhilePresenting')) return;
+      const editing = (store.getState() as EditingNoteState).editingNote;
+      if (!editing || editing._id !== noteId) return;
+      const body = editing.body;
+      if (typeof body !== 'string' || body === lastBodyRef.current) return;
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        timer = null;
+        lastBodyRef.current = body;
+        setRefreshedBody(body);
+      }, REFRESH_DEBOUNCE_MS);
+    });
+
+    return () => {
+      unsubscribe();
+      if (timer !== null) window.clearTimeout(timer);
+    };
   }, [note]);
 
   // Speaker session lives exactly as long as the presentation (not the
@@ -103,12 +157,18 @@ export function PresentationView() {
     if (!note || !container || !host) return;
 
     let cancelled = false;
-    const prepared = prepareDeck(note.body, getAllConfig());
-    if (prepared.warnings.length > 0) {
-      getEnv().notifications.addInfo('ink-presentation', {
-        detail: prepared.warnings.join('\n'),
-        dismissable: true,
-      });
+    const prepared = prepareDeck(refreshedBody ?? note.body, getAllConfig());
+    // Only toast when the warning set changes: auto-refresh rebuilds hit
+    // this path repeatedly while frontmatter is mid-edit.
+    const warningsKey = prepared.warnings.join('\n');
+    if (warningsKey !== lastWarningsRef.current) {
+      lastWarningsRef.current = warningsKey;
+      if (prepared.warnings.length > 0) {
+        getEnv().notifications.addInfo('ink-presentation', {
+          detail: warningsKey,
+          dismissable: true,
+        });
+      }
     }
     const manager = new RevealManager(host, {
       markdown: prepared.markdown,
@@ -274,7 +334,7 @@ export function PresentationView() {
       speakerSubscription.dispose();
       manager.destroy();
     };
-  }, [note, deckKey]);
+  }, [note, deckKey, refreshedBody]);
 
   // No explicit fullscreen exit on close: unmounting the fullscreen element
   // makes the browser exit automatically, and rebuilds keep it active.

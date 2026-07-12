@@ -157,5 +157,8 @@ KaTeX (and its fonts) load only when a note actually contains math.
 - The speaker view window relies on undocumented Inkdrop internals; if a
   future Inkdrop build changes them, <kbd>V</kbd> shows an error
   notification instead of a window.
-- Slides are a snapshot: edits made while presenting appear the next time
-  you open the deck.
+- The deck auto-refreshes when the presented note changes — edited in
+  another window, or synced from another device — keeping your slide
+  position (disable via the "Auto-refresh the deck while presenting"
+  setting, which turns slides back into an open-time snapshot). Edits can't
+  be made in the presenting window itself; the deck covers its editor.

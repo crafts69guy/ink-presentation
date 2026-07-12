@@ -3,6 +3,9 @@ import { Emitter, type Disposable } from 'event-kit'
 export interface PresentationNote {
   title: string
   body: string
+  /** Note document id; absent for the bundled sample deck. Enables the
+   * auto-refresh subscription while presenting. */
+  id?: string
 }
 
 /**

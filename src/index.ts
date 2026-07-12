@@ -19,6 +19,7 @@ const SPEAKER_COMPONENT_NAME = 'InkPresentationSpeakerView'
 
 interface EditingNoteSlice {
   editingNote?: {
+    _id?: string
     title?: string
     body?: string
   } | null
@@ -100,7 +101,8 @@ class InkPresentationPlugin implements IInkdropPlugin {
     }
     presentationEvents.emitToggle({
       title: editingNote?.title ?? 'Untitled',
-      body
+      body,
+      id: editingNote?._id
     })
   }
 }

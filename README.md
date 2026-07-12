@@ -7,6 +7,7 @@ Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slide
 - 🧮 **Diagrams & math** — Mermaid diagrams and KaTeX math (`$…$` / `$$…$$`), both loaded lazily only when a note uses them
 - 🗒️ **Speaker notes** — `<!-- note: ... -->` comments or `Note:` lines, shown in an in-deck overlay
 - 🪞 **Speaker view** — press <kbd>V</kbd> for a separate synced window with current + next slide, notes, slide counter, and a timer
+- 🔄 **Live refresh** — edits to the note from another window (or synced from another device) rebuild the open deck in place, keeping your slide position
 - 🧱 **Code-fence aware** — `---`, `#`, and `Note:` inside code blocks never break your slides
 - ⚙️ **Per-note config** — override theme, transition, splitting, and even deck CSS via YAML frontmatter
 - 🔒 **Fully isolated** — the deck renders in a Shadow DOM; plugin styles never leak into the app
@@ -88,6 +89,7 @@ const answer = 42;
 | Show slide number                  | on        |                                                                                             |
 | Show progress bar                  | on        |                                                                                             |
 | Vertical slides                    | off       | Enables `--` as a vertical separator in `hr` mode                                           |
+| Auto-refresh the deck while presenting | on    | Rebuild the open deck (keeping position) when the note changes in another window or via sync |
 | Show "Present Sample Deck" command | on        | Adds a command/menu entry to present a bundled sample note showcasing the plugin's features |
 
 Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`, `verticalSlides`, `css`) override these per note. `css` takes a block of deck-scoped CSS injected after the theme (see [docs/writing-slides.md](docs/writing-slides.md#custom-css)).
@@ -132,7 +134,7 @@ upstream.
 - [x] KaTeX math rendering in slides — shipped
 - [x] Popup speaker view — shipped
 - [x] Custom per-note CSS via frontmatter — shipped
-- [ ] Auto-refresh the deck while editing, mid-presentation
+- [x] Auto-refresh the deck while editing, mid-presentation — shipped
 - [ ] Plugin-registry publication
 
 PDF/HTML export is intentionally out of scope — Inkdrop's built-in note export already covers it.

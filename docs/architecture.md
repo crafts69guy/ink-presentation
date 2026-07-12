@@ -179,9 +179,14 @@ flag covers destroy-during-async-initialize). The markdown template is
 assigned via `textContent`, so note content containing `</script>` cannot
 break out.
 
-Rebuilds (settings/theme/OS-appearance changes while open) bump a `deckKey`;
-slide position survives via `initialSlide`. A `ResizeObserver` drives
-`deck.layout()` on window resize and fullscreen transitions.
+Rebuilds (settings/theme/OS-appearance changes while open, and note edits
+arriving from another window or sync via a debounced `store.subscribe` on
+`editingNote` — the host reloads it there when the note doc changes and the
+local editor isn't dirty) bump a `deckKey` or swap in a `refreshedBody`;
+slide position survives via `initialSlide`, and a warnings-changed guard
+keeps mid-edit invalid frontmatter from re-toasting on every keystroke. A
+`ResizeObserver` drives `deck.layout()` on window resize and fullscreen
+transitions.
 
 ### Host integration
 

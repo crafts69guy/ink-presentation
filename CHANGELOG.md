@@ -8,6 +8,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Auto-refresh while presenting: when the presented note changes (edited in
+  another window, or synced from another device), the open deck rebuilds in
+  place after a short debounce, keeping the current slide position and the
+  speaker view in sync. On by default; disable via the new "Auto-refresh
+  the deck while presenting" setting to get the old snapshot behavior
 - Custom per-note CSS: a `css` frontmatter key (YAML block scalar) restyles
   that note's deck. Injected after the theme so it wins; Shadow DOM keeps it
   out of the app UI; `@import`/`@font-face` are stripped and `url()`

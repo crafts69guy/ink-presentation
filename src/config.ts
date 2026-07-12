@@ -18,6 +18,7 @@ export interface PluginConfigValues {
   showSlideNumber: boolean
   showProgressBar: boolean
   verticalSlides: boolean
+  autoRefreshWhilePresenting: boolean
   showSampleCommand: boolean
 }
 
@@ -72,6 +73,16 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
     default: false,
     order: 7
   },
+  autoRefreshWhilePresenting: {
+    title: 'Auto-refresh the deck while presenting',
+    description:
+      'When the presented note changes (edited in another window, or synced ' +
+      'from another device), rebuild the open deck in place, keeping the ' +
+      'current slide position.',
+    type: 'boolean',
+    default: true,
+    order: 8
+  },
   showSampleCommand: {
     title: 'Show "Present Sample Deck" command',
     description:
@@ -79,7 +90,7 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
       'note showcasing the plugin\'s features, without touching your notes.',
     type: 'boolean',
     default: true,
-    order: 8
+    order: 9
   }
 }
 
@@ -96,6 +107,7 @@ export function getAllConfig(): PluginConfigValues {
     showSlideNumber: getConfig('showSlideNumber'),
     showProgressBar: getConfig('showProgressBar'),
     verticalSlides: getConfig('verticalSlides'),
+    autoRefreshWhilePresenting: getConfig('autoRefreshWhilePresenting'),
     showSampleCommand: getConfig('showSampleCommand')
   }
 }

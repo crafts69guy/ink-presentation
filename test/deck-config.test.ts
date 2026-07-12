@@ -10,6 +10,7 @@ const pluginDefaults: PluginConfigValues = {
   showSlideNumber: true,
   showProgressBar: true,
   verticalSlides: false,
+  autoRefreshWhilePresenting: true,
   showSampleCommand: true
 }
 

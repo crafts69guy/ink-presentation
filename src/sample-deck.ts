@@ -112,7 +112,7 @@ No frontmatter override needed for this — \`auto\` is the plugin default.
 | KaTeX math               | shipped |
 | Speaker view window       | shipped |
 | Custom per-note CSS         | shipped |
-| Live deck refresh while editing | planned |
+| Live deck refresh while editing | shipped |
 
 # KaTeX math — shipped
 
