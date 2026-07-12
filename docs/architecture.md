@@ -83,6 +83,30 @@ options it receives over IPC: `prepareForShadowRoot` strips
 `#fragment` — presenting a shared note must not beacon out. Shadow DOM
 scoping already keeps it away from the app UI.
 
+### Note-authored HTML is sanitized after conversion (DOMPurify)
+
+Threat model: RevealMarkdown's bundled marked converts note markdown with
+raw HTML passthrough, and Inkdrop's renderer runs with nodeIntegration — so
+presenting a synced or shared note someone else authored would execute its
+`<script>`/`onerror` handlers with Node privileges. `reveal/sanitize.ts`
+runs DOMPurify over every converted slide inside `RevealManager.initialize`,
+per the same principle as the CSS channel above: hardening lives at the one
+choke point both windows share, so the speaker window's mini decks are
+covered on IPC-received markdown with zero extra protocol work.
+
+Why a post-convert DOM pass and not a marked hook or escaping raw HTML in
+the pipeline: it preserves legit inline HTML (marked output plus benign
+author markup), and it also catches attributes RevealMarkdown itself copies
+onto `<section>` elements from `<!-- .slide: ... -->` comments — those never
+pass through marked at all. Ordering matters twice: the pass runs after
+`deck.initialize()` (nothing exists to sanitize before conversion) and
+before the mermaid pass (mermaid SVG is sanitized internally by
+`securityLevel: 'strict'` and would be mangled by an HTML-profile re-run).
+KaTeX placeholders ride through as `data-*` attributes, which DOMPurify
+keeps by default; the DOM test suite pins that behavior. `dompurify` is
+bundled, not lazy-loaded like mermaid/katex — sanitization must fail
+closed, so it cannot depend on a runtime import succeeding.
+
 ### Sentinel-based slide splitting (not Reveal separators)
 
 RevealMarkdown's `slidify()` advances its exec loop with `regex.lastIndex`,

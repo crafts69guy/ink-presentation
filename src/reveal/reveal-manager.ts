@@ -11,6 +11,7 @@ import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
 import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
 import { ensureKatexAssets } from './katex-assets'
+import { sanitizeSlideContent } from './sanitize'
 import { getHighlightSheet, isAppDark, resolveTheme } from './themes'
 
 export interface SlidePosition {
@@ -212,6 +213,9 @@ export class RevealManager {
       this.safeDestroyDeck(deck)
       return
     }
+    // Before the mermaid pass: diagram SVG is sanitized by mermaid itself
+    // and must not be re-run through the HTML profile.
+    sanitizeSlideContent(root)
     const diagramsRendered = await this.renderMermaidDiagrams(root, dark, inkdropNative)
     if (this.state !== 'initializing') {
       // Same guard as above, re-checked after the mermaid render's own await.

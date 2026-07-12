@@ -24,7 +24,9 @@ export default defineConfig({
       'node:module',
       'node:path'
     ],
-    alwaysBundle: ['reveal.js', 'js-yaml', 'event-kit', 'highlight.js']
+    // dompurify is bundled rather than lazy like mermaid/katex: sanitization
+    // must fail closed, so it cannot depend on a runtime import succeeding.
+    alwaysBundle: ['reveal.js', 'js-yaml', 'event-kit', 'highlight.js', 'dompurify']
   },
   sourcemap: true,
   minify: true,

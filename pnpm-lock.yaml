@@ -33,6 +33,9 @@ importers:
       '@types/reveal.js':
         specifier: ^5.2.2
         version: 5.2.2
+      dompurify:
+        specifier: ^3.4.11
+        version: 3.4.11
       event-kit:
         specifier: ^2.5.3
         version: 2.5.3
