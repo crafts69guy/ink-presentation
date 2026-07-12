@@ -2,6 +2,8 @@
 
 Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slideshows inside [Inkdrop](https://www.inkdrop.app/) v6 — no external tools, no leaving the app.
 
+![A note presented as a slide: a Mermaid sequence diagram rendered in the app-native dark theme, with the slide counter and navigation controls](assets/screenshot-presenting.png)
+
 - 🎨 **App-native theme by default** — slides follow your Inkdrop theme (light/dark, colors, fonts) live, plus 6 classic Reveal themes
 - ✂️ **Flexible slide splitting** — `---` breaks, or automatic `#`/`##` heading splitting with vertical stacks
 - 🧮 **Diagrams & math** — Mermaid diagrams and KaTeX math (`$…$` / `$$…$$`), both loaded lazily only when a note uses them
