@@ -119,7 +119,14 @@ ln -sfn "$PWD" ~/Library/Application\ Support/inkdrop-canary/dev/packages/ink-pr
 
 Enable **Development Mode** in Preferences ▸ General and reload (<kbd>⌥⌘⇧R</kbd>).
 
-Architecture notes: **[docs/architecture.md](docs/architecture.md)**.
+Docs for contributors:
+
+- **[docs/architecture.md](docs/architecture.md)** — how it works and why.
+- **[docs/verifying.md](docs/verifying.md)** — the in-app checklist for
+  things the test suite can't cover (run before releasing).
+- **[docs/canary-upgrade.md](docs/canary-upgrade.md)** — the undocumented
+  Inkdrop internals the plugin rides on, and how to re-verify them after an
+  Inkdrop upgrade.
 
 ## Publishing
 

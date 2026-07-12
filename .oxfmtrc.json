@@ -5,5 +5,5 @@
   "arrowParens": "avoid",
   "printWidth": 100,
   "trailingComma": "none",
-  "ignorePatterns": ["src/generated/", "lib/"]
+  "ignorePatterns": ["src/generated/", "lib/", "**/*.md"]
 }
