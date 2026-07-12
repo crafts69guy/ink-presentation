@@ -22,7 +22,9 @@ PresentationView (always mounted in the `modal` layout region, renders null when
         │
         ├─ RevealManager                      src/reveal/reveal-manager.ts
         │    ├─ Shadow DOM + style injection  (themes.ts, core/css.ts)
-        │    └─ Reveal lifecycle (embedded, keyboard:false)
+        │    ├─ Reveal lifecycle (embedded, keyboard:false)
+        │    ├─ sanitizeSlideContent          src/reveal/sanitize.ts
+        │    └─ DeckHydrator (lazy per-slide) src/reveal/hydrate.ts
         │
         ├─ key-controller                     src/reveal/key-controller.ts
         └─ NotesOverlay                       src/ui/NotesOverlay.tsx
@@ -131,8 +133,8 @@ remark-math delimiter rules so `$5 and $10` stays prose), replacing each with
 an empty `<span data-ink-math="…">` carrying URI-encoded TeX. The placeholder
 is inert through marked, slide splitting, and notes handling — running before
 `splitSlides` also means a `$$` block spanning `---`/`# ` lines can never
-falsely split a slide. After RevealMarkdown converts the slides,
-`RevealManager.renderMathExpressions` renders KaTeX into the placeholders
+falsely split a slide. After RevealMarkdown converts the slides, the
+hydration pass (`reveal/hydrate.ts`) renders KaTeX into the placeholders
 (`throwOnError: false`, `trust: false`); placeholders inside `aside.notes`
 get raw TeX text instead, because the notes overlay renders text only.
 
@@ -193,6 +195,40 @@ two non-interactive mini `RevealManager` decks from the same sentinel
 markdown: one at the presenter's position, one advanced a step with
 Reveal's own `next()` ordering.
 
+### Lazy per-slide hydration (mermaid / KaTeX / highlight.js)
+
+The expensive renderers used to run over the whole deck before it opened —
+every diagram, expression, and code block, sequentially, off-screen slides
+included, which was the scalability wall for large notes (and tripled when
+the speaker view mirrored the deck with two more managers). `DeckHydrator`
+(`reveal/hydrate.ts`) scopes all three renderers to one leaf `<section>` at
+a time behind an idempotent `data-ink-hydrated` marker. `initialize()`
+resolves once the visible slide and its one-keypress neighbors (document
+order plus the vertical stack) are hydrated; every `slidechanged` hydrates
+the newly reachable slides; the rest of the deck fills in one slide per
+`requestIdleCallback` slice. `deck.layout()` runs only when hydration
+changed the _current_ slide's content — off-screen height changes don't need
+a refit, and Reveal re-lays out on navigation anyway. Because notes can
+carry math placeholders that hydration resolves to text, the slide-changed
+notification re-fires after a current-slide hydration.
+
+Auto-refresh rebuilds deliberately stay full destroy/rebuild: with lazy
+hydration a rebuild only pays for the visible slides, so per-keystroke cost
+is near-constant. True incremental DOM diffing is an explicit non-goal.
+
+Mermaid needs three extra guards, all module-level in `hydrate.ts`: render
+element ids come from a monotonic counter (`Date.now()` collided when the
+speaker's two mini decks hydrated in the same millisecond); renders from
+concurrent managers are serialized through one promise chain because
+`mermaid.initialize()` mutates global config and `render()` shares an
+internal DOM sandbox; and a _module load_ failure degrades every diagram to
+the inline error node instead of rejecting deck initialization (render
+failures always did). The speaker's mini decks pass `hydrateVisibleOnly` —
+they mirror a deck already rendered in full elsewhere, so background idle
+hydration would be pure waste; the speaker window also skips rebuilding its
+mini decks entirely when a presenter re-`init` carries unchanged
+markdown/options.
+
 ### Reveal lifecycle vs React 19
 
 React renders only the overlay shell; `RevealManager` builds the deck DOM
@@ -234,8 +270,8 @@ the generated CSS strings.
 declared as real `dependencies` (not `devDependencies`), listed in
 `tsdown.config.ts`'s `neverBundle` array so they're never inlined, and loaded
 via a cached `await import(…)` only when a deck actually needs them — a
-`mermaid` fenced code block (`RevealManager.renderMermaidDiagrams`) or a math
-placeholder (`RevealManager.renderMathExpressions`). KaTeX's CSS and fonts
+`mermaid` fenced code block or a math placeholder reaching the hydration
+pass (`reveal/hydrate.ts`). KaTeX's CSS and fonts
 (~300 kB of .woff2) follow the same rule via `reveal/katex-assets.ts`, read
 off disk at first use instead of shipping in the bundle — the same "don't pay
 for what you don't use" reasoning as `highlight.js/lib/common` above, just

@@ -1,16 +1,12 @@
-// lib/common bundles ~40 popular languages instead of the full set (or
-// Reveal's highlight plugin, which inlines all of highlight.js — ~1 MB).
-import hljs from 'highlight.js/lib/common'
 import Reveal from 'reveal.js'
 import RevealMarkdown from 'reveal.js/plugin/markdown/markdown.esm.js'
 import type { EffectiveDeckOptions } from '../core/deck-config'
 import { prepareForShadowRoot, stripRemoteUrls } from '../core/css'
-import { decodeMathTex, MATH_DISPLAY_ATTR, MATH_TEX_ATTR } from '../core/math'
 import { NOTES_SEPARATOR_REGEX } from '../core/notes'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
 import resetCss from '../generated/reveal-reset-css'
 import revealCss from '../generated/reveal-css'
-import { ensureKatexAssets } from './katex-assets'
+import { DeckHydrator } from './hydrate'
 import { sanitizeSlideContent } from './sanitize'
 import { getHighlightSheet, isAppDark, resolveTheme } from './themes'
 
@@ -27,6 +23,12 @@ export interface RevealManagerInit {
   initialSlide?: SlidePosition
   /** Fired on ready and every slide change with the slide's speaker notes. */
   onSlideChanged?: (notes: string, position: SlidePosition) => void
+  /**
+   * Skip background idle hydration and render only the slides the deck
+   * actually shows — for the speaker window's mini decks, which mirror a
+   * deck that is already fully rendered elsewhere.
+   */
+  hydrateVisibleOnly?: boolean
 }
 
 type ManagerState = 'idle' | 'initializing' | 'ready' | 'destroyed'
@@ -77,101 +79,22 @@ const BASE_CSS = `
 }
 `
 
-/** Lazily imported once; re-initialized (cheap, no re-import) on every
- * render so a theme/appearance change between decks is always reflected. */
-let mermaidModule: Promise<typeof import('mermaid')> | null = null
-
-async function loadMermaid(): Promise<typeof import('mermaid').default> {
-  mermaidModule ??= import('mermaid')
-  const { default: mermaid } = await mermaidModule
-  return mermaid
-}
-
-/** Lazily imported once, same budget reasoning as mermaid above: katex stays
- * external (tsdown `neverBundle`) and only loads when a deck contains math. */
-let katexModule: Promise<typeof import('katex')> | null = null
-
-async function loadKatex(): Promise<typeof import('katex').default> {
-  katexModule ??= import('katex')
-  const { default: katex } = await katexModule
-  return katex
-}
-
-/**
- * Reads the same app CSS custom properties `src/themes/inkdrop.css` maps
- * onto Reveal's `--r-*` variables, resolved to concrete colors the same way
- * `isAppDark()` probes `--editor-background` — mermaid computes its palette
- * at render time and cannot follow live `var()` cascades the way the rest
- * of the deck's CSS does.
- */
-function resolveInkdropColors(): {
-  background: string
-  text: string
-  border: string
-  accent: string
-  font: string
-} {
-  const probe = document.createElement('div')
-  probe.style.cssText = [
-    'position:absolute',
-    'visibility:hidden',
-    'pointer-events:none',
-    'background-color:var(--editor-background, var(--editor-background-color, #1c1c1c))',
-    'color:var(--text-color, #dddddd)',
-    'border-color:var(--border-color, rgba(127, 127, 127, 0.4))',
-    'outline-color:var(--primary-color, var(--link-color, #578af1))',
-    "font-family:var(--font-name, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif)"
-  ].join(';')
-  document.body.appendChild(probe)
-  const style = getComputedStyle(probe)
-  const colors = {
-    background: style.backgroundColor,
-    text: style.color,
-    border: style.borderColor,
-    accent: style.outlineColor,
-    font: style.fontFamily
-  }
-  probe.remove()
-  return colors
-}
-
-/**
- * `inkdrop` theme: derive mermaid's palette from the live app colors so
- * diagrams match the surrounding deck, same intent as `theme-inkdrop-css.ts`.
- * Reveal classics (black/white/night/...): mermaid has no equivalent of
- * those fixed palettes, so just pick its own light/dark built-in theme for
- * contrast against the slide background.
- */
-function mermaidThemeConfig(dark: boolean, inkdropNative: boolean): Record<string, unknown> {
-  if (!inkdropNative) return { theme: dark ? 'dark' : 'default' }
-
-  const colors = resolveInkdropColors()
-  return {
-    theme: 'base',
-    themeVariables: {
-      background: colors.background,
-      primaryColor: colors.background,
-      primaryTextColor: colors.text,
-      primaryBorderColor: colors.accent,
-      secondaryColor: colors.background,
-      tertiaryColor: colors.background,
-      lineColor: colors.border,
-      textColor: colors.text,
-      edgeLabelBackground: colors.background,
-      fontFamily: colors.font
-    }
-  }
-}
-
 /**
  * Owns the Reveal.js lifecycle inside a Shadow DOM attached to the host
  * element. The shadow boundary keeps Reveal's stylesheets away from the app
  * while still letting Inkdrop's CSS custom properties inherit through.
+ *
+ * Expensive slide content (mermaid/KaTeX/highlight.js) is NOT rendered up
+ * front: `initialize()` resolves once the visible slide and its neighbors
+ * are hydrated, and the rest of the deck fills in on idle time or on
+ * navigation (see `reveal/hydrate.ts`).
  */
 export class RevealManager {
   private deck: Reveal.Api | null = null
   private state: ManagerState = 'idle'
   private resizeObserver: ResizeObserver | null = null
+  private hydrator: DeckHydrator | null = null
+  private fontRefitScheduled = false
 
   constructor(
     private readonly host: HTMLElement,
@@ -213,44 +136,31 @@ export class RevealManager {
       this.safeDestroyDeck(deck)
       return
     }
-    // Before the mermaid pass: diagram SVG is sanitized by mermaid itself
-    // and must not be re-run through the HTML profile.
+    // Before any hydration: mermaid SVG is sanitized by mermaid itself and
+    // must not be re-run through the HTML profile.
     sanitizeSlideContent(root)
-    const diagramsRendered = await this.renderMermaidDiagrams(root, dark, inkdropNative)
-    if (this.state !== 'initializing') {
-      // Same guard as above, re-checked after the mermaid render's own await.
-      this.safeDestroyDeck(deck)
-      return
-    }
-    const mathRendered = await this.renderMathExpressions(root)
-    if (this.state !== 'initializing') {
-      // And once more after the katex render's own await.
-      this.safeDestroyDeck(deck)
-      return
-    }
-    this.highlightCodeBlocks(root)
+    this.hydrator = new DeckHydrator(root, { dark, inkdropNative })
     this.deck = deck
     this.state = 'ready'
-    // Diagrams and math change slide content height after Reveal already fit
-    // itself to the pre-render DOM.
-    if (diagramsRendered || mathRendered) deck.layout()
-    if (mathRendered) {
-      // KaTeX webfonts (document-level data: URIs) finish loading after first
-      // use; glyph metrics shift slightly, so refit once they settle. The
-      // ResizeObserver can't catch this — the host size doesn't change.
-      void document.fonts.ready.then(() => {
-        if (this.state === 'ready') this.deck?.layout()
-      })
-    }
 
-    const { initialSlide, onSlideChanged } = this.init
+    // Navigation both notifies (speaker/notes overlay) and hydrates the
+    // newly reachable slides. Registered before the position restore so a
+    // mid-deck rebuild hydrates the restored slide, not slide 1.
+    deck.on('slidechanged', () => {
+      this.notifySlideChanged()
+      void this.hydrateVisible()
+    })
+    const { initialSlide, onSlideChanged, hydrateVisibleOnly } = this.init
     if (initialSlide && (initialSlide.h > 0 || initialSlide.v > 0)) {
       deck.slide(initialSlide.h, initialSlide.v)
     }
-    if (onSlideChanged) {
-      deck.on('slidechanged', () => this.notifySlideChanged())
-      this.notifySlideChanged()
-    }
+    if (onSlideChanged) this.notifySlideChanged()
+
+    // First paint waits only for the visible slide and its neighbors.
+    await this.hydrateVisible()
+    if (this.state !== 'ready') return
+
+    if (!hydrateVisibleOnly) this.hydrator.startIdleHydration()
 
     // Reveal computes its scale from the container size; refit on resize
     // (window resize, fullscreen enter/exit).
@@ -258,6 +168,34 @@ export class RevealManager {
       if (this.state === 'ready') this.deck?.layout()
     })
     this.resizeObserver.observe(this.host)
+  }
+
+  /**
+   * Hydrate the current slide and its neighbors; relayout and re-notify if
+   * the current slide's content changed height (diagrams/math replace their
+   * placeholders after Reveal already fit itself to the pre-render DOM).
+   */
+  private async hydrateVisible(): Promise<void> {
+    const { deck, hydrator } = this
+    if (!deck || !hydrator || this.state !== 'ready') return
+    const current = deck.getCurrentSlide() as HTMLElement | null
+    const { currentChanged, anyMath } = await hydrator.hydrateAround(current)
+    if (this.state !== 'ready') return
+    if (currentChanged) {
+      deck.layout()
+      // Speaker notes may contain math placeholders that hydration just
+      // resolved to readable TeX text — push the updated notes out.
+      this.notifySlideChanged()
+    }
+    if (anyMath && !this.fontRefitScheduled) {
+      // KaTeX webfonts (document-level data: URIs) finish loading after
+      // first use; glyph metrics shift slightly, so refit once they settle.
+      // The ResizeObserver can't catch this — the host size doesn't change.
+      this.fontRefitScheduled = true
+      void document.fonts.ready.then(() => {
+        if (this.state === 'ready') this.deck?.layout()
+      })
+    }
   }
 
   private notifySlideChanged(): void {
@@ -270,119 +208,12 @@ export class RevealManager {
     this.init.onSlideChanged?.(notes.trim(), { h: indices.h, v: indices.v })
   }
 
-  /**
-   * RevealMarkdown has converted the slides by now; replace mermaid fences
-   * with rendered SVG in place. Runs before highlightCodeBlocks() so
-   * replaced blocks (no longer `pre code`) are naturally skipped by hljs.
-   * Returns whether any diagram was rendered, so the caller knows to relayout.
-   */
-  private async renderMermaidDiagrams(
-    root: ShadowRoot,
-    dark: boolean,
-    inkdropNative: boolean
-  ): Promise<boolean> {
-    // RevealMarkdown overrides marked's default code renderer and does NOT
-    // apply `langPrefix` ("language-"); the fence's info string becomes the
-    // class verbatim (`class="mermaid"`), unlike highlight.js's own
-    // language-detection which additionally recognizes bare class names.
-    const blocks = Array.from(root.querySelectorAll<HTMLElement>('pre code.mermaid'))
-    if (blocks.length === 0) return false
-
-    const mermaid = await loadMermaid()
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'strict',
-      ...mermaidThemeConfig(dark, inkdropNative)
-    })
-    let rendered = false
-    for (const [index, block] of blocks.entries()) {
-      // A slow multi-diagram note could still be mid-render when destroy()
-      // is called; bail out before touching the DOM further.
-      if (this.state !== 'initializing') return rendered
-
-      const source = block.textContent ?? ''
-      const pre = block.closest('pre') ?? block
-      try {
-        const { svg } = await mermaid.render(`mermaid-${index}-${Date.now()}`, source)
-        const wrapper = document.createElement('div')
-        wrapper.className = 'mermaid-diagram'
-        // securityLevel: 'strict' has mermaid sanitize the SVG internally
-        // (DOMPurify) before returning it, so injecting it here is safe.
-        wrapper.innerHTML = svg
-        pre.replaceWith(wrapper)
-      } catch (err) {
-        const errorNode = document.createElement('pre')
-        errorNode.className = 'mermaid-error'
-        errorNode.textContent = `Mermaid diagram error: ${err instanceof Error ? err.message : String(err)}`
-        pre.replaceWith(errorNode)
-      }
-      rendered = true
-    }
-    return rendered
-  }
-
-  /**
-   * RevealMarkdown has converted the slides by now; the preprocessing
-   * pipeline (core/math.ts) left empty placeholder spans carrying URI-encoded
-   * TeX. Render KaTeX into them in place. KaTeX itself and its CSS/fonts are
-   * loaded lazily only when placeholders exist — decks without math pay zero
-   * cost. Returns whether anything was rendered, so the caller knows to
-   * relayout.
-   */
-  private async renderMathExpressions(root: ShadowRoot): Promise<boolean> {
-    const nodes = Array.from(root.querySelectorAll<HTMLElement>(`span[${MATH_TEX_ATTR}]`))
-    if (nodes.length === 0) return false
-
-    let katex: Awaited<ReturnType<typeof loadKatex>> | null = null
-    try {
-      const shadowCss = ensureKatexAssets()
-      katex = await loadKatex()
-      const style = document.createElement('style')
-      style.textContent = shadowCss
-      root.appendChild(style)
-    } catch (err) {
-      // Degrade to plain TeX text below rather than blanking the deck.
-      console.error('ink-presentation: failed to load KaTeX', err)
-    }
-
-    for (const node of nodes) {
-      // Bail out if destroy() arrived while katex was loading.
-      if (this.state !== 'initializing') return true
-
-      const tex = decodeMathTex(node.getAttribute(MATH_TEX_ATTR) ?? '')
-      if (tex === null) continue // hand-written span with a malformed attribute
-      // The notes overlay renders text only — keep raw TeX readable there.
-      if (katex === null || node.closest('aside.notes') !== null) {
-        node.textContent = tex
-        continue
-      }
-      try {
-        katex.render(tex, node, {
-          displayMode: node.hasAttribute(MATH_DISPLAY_ATTR),
-          // Invalid TeX renders as red source text instead of throwing.
-          throwOnError: false,
-          // No \href/\includegraphics/… from note content.
-          trust: false
-        })
-      } catch {
-        // throwOnError:false still throws on a few non-parse errors.
-        node.textContent = tex
-      }
-    }
-    return true
-  }
-
-  /** RevealMarkdown has converted the slides by now; highlight in place. */
-  private highlightCodeBlocks(root: ShadowRoot): void {
-    for (const block of Array.from(root.querySelectorAll('pre code'))) {
-      hljs.highlightElement(block as HTMLElement)
-    }
-  }
-
   destroy(): void {
     if (this.state === 'destroyed') return
     const previous = this.state
     this.state = 'destroyed'
+    this.hydrator?.stop()
+    this.hydrator = null
     this.resizeObserver?.disconnect()
     this.resizeObserver = null
     if (previous === 'ready' && this.deck) {

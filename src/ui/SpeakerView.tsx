@@ -53,6 +53,25 @@ function previewOptions(options: EffectiveDeckOptions): EffectiveDeckOptions {
   }
 }
 
+/**
+ * The presenter re-broadcasts `init` after every rebuild, including ones
+ * that don't change the prepared deck (settings toggle, refresh with
+ * identical output). Rebuilding both mini decks then is pure waste — keep
+ * the current state object when nothing material changed.
+ */
+function sameDeck(a: SpeakerDeck, b: SpeakerDeck): boolean {
+  if (a.title !== b.title || a.markdown !== b.markdown) return false
+  const keys = new Set([...Object.keys(a.options), ...Object.keys(b.options)])
+  for (const key of keys) {
+    if (
+      a.options[key as keyof EffectiveDeckOptions] !== b.options[key as keyof EffectiveDeckOptions]
+    ) {
+      return false
+    }
+  }
+  return true
+}
+
 export function SpeakerView() {
   const [session, setSession] = useState<SpeakerEnterDetail | null>(null)
   const [deck, setDeck] = useState<SpeakerDeck | null>(null)
@@ -118,7 +137,14 @@ export function SpeakerView() {
           startedAtRef.current ??= Date.now()
           positionRef.current = message.position
           setPosition(message.position)
-          setDeck({ title: message.title, markdown: message.markdown, options: message.options })
+          setDeck(current => {
+            const incoming: SpeakerDeck = {
+              title: message.title,
+              markdown: message.markdown,
+              options: message.options
+            }
+            return current && sameDeck(current, incoming) ? current : incoming
+          })
           window.document.title = message.title ? `Speaker view — ${message.title}` : 'Speaker view'
           break
         case 'position':
@@ -198,6 +224,9 @@ export function SpeakerView() {
       markdown: deck.markdown,
       options,
       initialSlide: positionRef.current,
+      // The presenter window already renders this deck in full; the mini
+      // decks only ever show the mirrored slide, so skip idle hydration.
+      hydrateVisibleOnly: true,
       onSlideChanged: notesText => {
         setNotes(notesText)
         const api = currentManager.getDeck()
@@ -210,7 +239,8 @@ export function SpeakerView() {
     const nextManager = new RevealManager(nextHost, {
       markdown: deck.markdown,
       options,
-      initialSlide: positionRef.current
+      initialSlide: positionRef.current,
+      hydrateVisibleOnly: true
     })
     currentManagerRef.current = currentManager
     nextManagerRef.current = nextManager
