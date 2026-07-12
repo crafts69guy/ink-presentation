@@ -8,7 +8,7 @@ Present your Markdown notes as beautiful [Reveal.js](https://revealjs.com) slide
 - 🗒️ **Speaker notes** — `<!-- note: ... -->` comments or `Note:` lines, shown in an in-deck overlay
 - 🪞 **Speaker view** — press <kbd>V</kbd> for a separate synced window with current + next slide, notes, slide counter, and a timer
 - 🧱 **Code-fence aware** — `---`, `#`, and `Note:` inside code blocks never break your slides
-- ⚙️ **Per-note config** — override theme, transition, and splitting via YAML frontmatter
+- ⚙️ **Per-note config** — override theme, transition, splitting, and even deck CSS via YAML frontmatter
 - 🔒 **Fully isolated** — the deck renders in a Shadow DOM; plugin styles never leak into the app
 
 ## Install
@@ -90,7 +90,7 @@ const answer = 42;
 | Vertical slides                    | off       | Enables `--` as a vertical separator in `hr` mode                                           |
 | Show "Present Sample Deck" command | on        | Adds a command/menu entry to present a bundled sample note showcasing the plugin's features |
 
-Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`, `verticalSlides`) override these per note.
+Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`, `verticalSlides`, `css`) override these per note. `css` takes a block of deck-scoped CSS injected after the theme (see [docs/writing-slides.md](docs/writing-slides.md#custom-css)).
 
 ## Known limitations
 
@@ -131,7 +131,7 @@ upstream.
 
 - [x] KaTeX math rendering in slides — shipped
 - [x] Popup speaker view — shipped
-- [ ] Custom per-note CSS via frontmatter
+- [x] Custom per-note CSS via frontmatter — shipped
 - [ ] Auto-refresh the deck while editing, mid-presentation
 - [ ] Plugin-registry publication
 

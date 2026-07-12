@@ -52,6 +52,17 @@ describe('parseDeckConfig', () => {
     expect(warnings[0]).toContain('neon')
   })
 
+  it('accepts a css string and warns on non-string css', () => {
+    const ok = parseDeckConfig({ css: '.reveal h1 { color: tomato; }' })
+    expect(ok.config).toEqual({ css: '.reveal h1 { color: tomato; }' })
+    expect(ok.warnings).toEqual([])
+
+    const bad = parseDeckConfig({ css: ['not', 'a', 'string'] })
+    expect(bad.config).toEqual({})
+    expect(bad.warnings).toHaveLength(1)
+    expect(bad.warnings[0]).toContain('css')
+  })
+
   it('silently ignores foreign frontmatter keys', () => {
     const { config, warnings } = parseDeckConfig({ tags: ['x'], created: '2026-01-01' })
     expect(config).toEqual({})
@@ -74,8 +85,14 @@ describe('mergeDeckOptions', () => {
       showSlideNumber: true,
       showProgressBar: true,
       verticalSlides: false,
-      autoFullscreen: true
+      autoFullscreen: true,
+      customCss: ''
     })
+  })
+
+  it('carries frontmatter css into customCss', () => {
+    const merged = mergeDeckOptions(pluginDefaults, { css: '.reveal { --r-heading-color: teal; }' })
+    expect(merged.customCss).toBe('.reveal { --r-heading-color: teal; }')
   })
 
   it('lets frontmatter win, including explicit false', () => {

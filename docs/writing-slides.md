@@ -66,12 +66,32 @@ separator: h2         # hr | h1 | h2
 slideNumber: false
 progress: false
 verticalSlides: true  # only meaningful in hr mode
+css: |                # deck-scoped CSS, injected after the theme
+  .reveal h1 { letter-spacing: 0.05em; }
 ---
 ```
 
 Unknown values produce a notification and fall back to your settings.
 Foreign keys (tags, dates, …) are ignored silently. Invalid YAML is stripped
 with a warning so it can't leak into slide 1.
+
+## Custom CSS
+
+The `css` frontmatter key (use a YAML block scalar, `css: |`) restyles the
+deck of that one note. It is injected as the **last** stylesheet, so it wins
+over the theme — target Reveal's classes (`.reveal h1`, `.reveal blockquote`,
+…) or override its `--r-*` custom properties.
+
+Scope and safety:
+
+- The deck renders in a Shadow DOM, so this CSS can never touch the Inkdrop
+  UI — it styles the presentation only (the speaker view's previews follow
+  it too).
+- `@import` and `@font-face` are stripped (as in every deck stylesheet), and
+  `url()` references are neutralized unless they are `data:` URIs or
+  `#fragment` references — a shared note can't phone home when presented.
+- `:root` selectors are rewritten to `:host` so custom properties work
+  inside the shadow tree.
 
 ## Speaker notes
 

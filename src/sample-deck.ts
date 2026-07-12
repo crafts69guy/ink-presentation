@@ -6,6 +6,11 @@ theme: inkdrop
 transition: slide
 slideNumber: true
 progress: true
+css: |
+  .reveal blockquote {
+    border-left: 4px solid #e4b363;
+    font-style: italic;
+  }
 ---
 
 # Ink-Presentation — Feature Demo
@@ -26,6 +31,9 @@ toggle the presentation to see the rest of the demo properly.
 - [Links](https://github.com/crafts69guy/ink-presentation) too
 
 > "Slides are just notes." — a happy user, probably
+
+That golden quote border isn't part of any theme — it comes from this
+note's own \`css:\` frontmatter (see the "Configuring this deck" slide).
 
 Note: everything from this line to the end of the slide is also a speaker
 note — press S while presenting to see it, or V to open the speaker view
@@ -103,7 +111,7 @@ No frontmatter override needed for this — \`auto\` is the plugin default.
 | Themes (app + classics) | shipped     |
 | KaTeX math               | shipped |
 | Speaker view window       | shipped |
-| Custom per-note CSS         | planned |
+| Custom per-note CSS         | shipped |
 | Live deck refresh while editing | planned |
 
 # KaTeX math — shipped
@@ -135,11 +143,15 @@ separator: h2         # auto (default) | hr | h1 | h2
 slideNumber: false
 progress: false
 verticalSlides: true  # only meaningful in hr mode
+css: |                # deck-scoped CSS, injected after the theme
+  .reveal h1 { letter-spacing: 0.05em; }
 ---
 \`\`\`
 
-This note itself uses \`theme: inkdrop\`, \`transition: slide\`, and the
-default \`auto\` separator — see the top of the raw note.
+This note itself uses \`theme: inkdrop\`, \`transition: slide\`, the default
+\`auto\` separator, and a \`css:\` block for the golden blockquote accent —
+see the top of the raw note. Custom CSS stays inside the deck's Shadow DOM
+and remote \`url()\` references are neutralized.
 
 # What's next
 

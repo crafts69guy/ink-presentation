@@ -8,6 +8,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Custom per-note CSS: a `css` frontmatter key (YAML block scalar) restyles
+  that note's deck. Injected after the theme so it wins; Shadow DOM keeps it
+  out of the app UI; `@import`/`@font-face` are stripped and `url()`
+  references other than `data:`/`#fragment` are neutralized so shared notes
+  can't phone home when presented. The speaker view's previews follow it
 - Speaker view: press <kbd>V</kbd> while presenting to open a separate,
   synced window showing the current slide, the upcoming slide, speaker
   notes, a slide counter, wall clock, and a resettable elapsed timer.

@@ -16,6 +16,8 @@ export interface DeckConfig {
   slideNumber?: boolean;
   progress?: boolean;
   verticalSlides?: boolean;
+  /** Raw note-authored CSS; hardened at injection time (reveal-manager). */
+  css?: string;
 }
 
 export interface DeckConfigResult {
@@ -32,6 +34,8 @@ export interface EffectiveDeckOptions {
   showProgressBar: boolean;
   verticalSlides: boolean;
   autoFullscreen: boolean;
+  /** Frontmatter-only (no plugin setting); empty string = none. */
+  customCss: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -89,6 +93,10 @@ export function parseDeckConfig(data: unknown): DeckConfigResult {
         if (typeof value === 'boolean') config.verticalSlides = value;
         else warnings.push(`"verticalSlides" must be true or false`);
         break;
+      case 'css':
+        if (typeof value === 'string') config.css = value;
+        else warnings.push(`"css" must be a string (use a YAML block scalar: css: |)`);
+        break;
       default:
         // Foreign frontmatter keys (tags, dates, …) are common — stay quiet.
         break;
@@ -111,5 +119,6 @@ export function mergeDeckOptions(
     showProgressBar: deckConfig.progress ?? pluginConfig.showProgressBar,
     verticalSlides: deckConfig.verticalSlides ?? pluginConfig.verticalSlides,
     autoFullscreen: pluginConfig.autoFullscreen,
+    customCss: deckConfig.css ?? '',
   };
 }

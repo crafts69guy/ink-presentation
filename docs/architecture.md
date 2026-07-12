@@ -72,6 +72,17 @@ Highlight.js light/dark pairing: static per built-in theme; for `inkdrop` a
 probe element resolves `--editor-background` and `core/color.ts` classifies
 its luminance.
 
+### Note-authored CSS (frontmatter `css`)
+
+Injected as the last sheet in the shadow root so it wins over the theme.
+Hardening happens at the injection point (`RevealManager.injectStyles`), not
+in the pure pipeline, so the speaker window enforces it independently on the
+options it receives over IPC: `prepareForShadowRoot` strips
+`@import`/`@font-face` like every sheet, and `core/css.ts`'s
+`stripRemoteUrls` empties any `url()` that isn't a `data:` URI or
+`#fragment` — presenting a shared note must not beacon out. Shadow DOM
+scoping already keeps it away from the app UI.
+
 ### Sentinel-based slide splitting (not Reveal separators)
 
 RevealMarkdown's `slidify()` advances its exec loop with `regex.lastIndex`,

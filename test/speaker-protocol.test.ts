@@ -70,13 +70,21 @@ describe('sanitizeDeckOptions', () => {
       showSlideNumber: false,
       showProgressBar: false,
       verticalSlides: false,
-      autoFullscreen: false
+      autoFullscreen: false,
+      customCss: ''
     })
     expect(sanitizeDeckOptions({ theme: 'white', showSlideNumber: true, autoFullscreen: true })).toMatchObject({
       theme: 'white',
       showSlideNumber: true,
       autoFullscreen: false
     })
+  })
+
+  it('passes customCss through as a string only', () => {
+    expect(sanitizeDeckOptions({ customCss: '.reveal h1 { color: red }' })).toMatchObject({
+      customCss: '.reveal h1 { color: red }'
+    })
+    expect(sanitizeDeckOptions({ customCss: 42 })).toMatchObject({ customCss: '' })
   })
 })
 

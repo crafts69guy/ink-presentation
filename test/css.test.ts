@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { prepareForShadowRoot, scopeRootSelectors, stripFontImports } from '../src/core/css'
+import {
+  prepareForShadowRoot,
+  scopeRootSelectors,
+  stripFontImports,
+  stripRemoteUrls
+} from '../src/core/css'
 
 describe('scopeRootSelectors', () => {
   it('rewrites :root to :host', () => {
@@ -39,5 +44,41 @@ describe('prepareForShadowRoot', () => {
   it('applies both transforms', () => {
     const css = "@import url('f.css');\n:root { --x: 1; }"
     expect(prepareForShadowRoot(css)).toBe('\n:host { --x: 1; }')
+  })
+})
+
+describe('stripRemoteUrls', () => {
+  it('neutralizes http(s) references, quoted or not', () => {
+    expect(stripRemoteUrls('.a { background: url(https://evil.example/x.png); }')).toBe(
+      '.a { background: url(); }'
+    )
+    expect(stripRemoteUrls(".a { background: url('http://x/y'); }")).toBe(
+      '.a { background: url(); }'
+    )
+    expect(stripRemoteUrls('.a { background: URL( //cdn/x.png ); }')).toBe(
+      '.a { background: url(); }'
+    )
+  })
+
+  it('neutralizes local file paths', () => {
+    expect(stripRemoteUrls('.a { background: url(/etc/x.png); }')).toBe(
+      '.a { background: url(); }'
+    )
+    expect(stripRemoteUrls('.a { background: url(file:///tmp/x); }')).toBe(
+      '.a { background: url(); }'
+    )
+  })
+
+  it('keeps data: URIs and fragment references', () => {
+    const data = '.a { background: url(data:image/png;base64,AAAA); }'
+    expect(stripRemoteUrls(data)).toBe(data)
+    const quotedData = '.a { background: url("data:image/svg+xml,<svg/>"); }'
+    expect(stripRemoteUrls(quotedData)).toBe(quotedData)
+    const fragment = '.a { clip-path: url(#clip); }'
+    expect(stripRemoteUrls(fragment)).toBe(fragment)
+  })
+
+  it('leaves an already-empty url() alone', () => {
+    expect(stripRemoteUrls('.a { background: url(); }')).toBe('.a { background: url(); }')
   })
 })

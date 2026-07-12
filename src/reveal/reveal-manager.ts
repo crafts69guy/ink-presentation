@@ -4,7 +4,7 @@ import hljs from 'highlight.js/lib/common'
 import Reveal from 'reveal.js'
 import RevealMarkdown from 'reveal.js/plugin/markdown/markdown.esm.js'
 import type { EffectiveDeckOptions } from '../core/deck-config'
-import { prepareForShadowRoot } from '../core/css'
+import { prepareForShadowRoot, stripRemoteUrls } from '../core/css'
 import { decodeMathTex, MATH_DISPLAY_ATTR, MATH_TEX_ATTR } from '../core/math'
 import { NOTES_SEPARATOR_REGEX } from '../core/notes'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../core/split'
@@ -400,6 +400,13 @@ export class RevealManager {
       getHighlightSheet(dark),
       ...theme.overrides
     ]
+    // Note-authored frontmatter CSS goes LAST so it wins over the theme.
+    // prepareForShadowRoot (below) strips its @import/@font-face like every
+    // other sheet; stripRemoteUrls additionally keeps a shared note from
+    // beaconing out via url() when presented. Shadow DOM scoping already
+    // keeps it away from the app UI.
+    const { customCss } = this.init.options
+    if (customCss.trim() !== '') sheets.push(stripRemoteUrls(customCss))
     for (const cssText of sheets) {
       const style = document.createElement('style')
       style.textContent = prepareForShadowRoot(cssText)

@@ -112,7 +112,10 @@ export function sanitizeDeckOptions(value: unknown): EffectiveDeckOptions {
     showSlideNumber: record.showSlideNumber === true,
     showProgressBar: record.showProgressBar === true,
     verticalSlides: record.verticalSlides === true,
-    autoFullscreen: false // never meaningful in a speaker window
+    autoFullscreen: false, // never meaningful in a speaker window
+    // Passed through so speaker mini decks match the presenter; hardening
+    // happens at injection time (reveal-manager), same as the presenter.
+    customCss: typeof record.customCss === 'string' ? record.customCss : ''
   }
 }
 

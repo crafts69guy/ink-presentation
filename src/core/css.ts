@@ -24,6 +24,21 @@ export function stripFontImports(css: string): string {
   return withoutFontFaces
 }
 
+/**
+ * Neutralize `url()` references that could reach the network (or local
+ * files) from note-authored CSS — a shared note must not be able to beacon
+ * out when presented. `data:` URIs and `#fragment` references stay; every
+ * other reference becomes the empty `url()`, which makes its declaration
+ * invalid so the CSS parser drops just that declaration.
+ */
+export function stripRemoteUrls(css: string): string {
+  return css.replace(/url\(([^)]*)\)/gi, (match, rawArg: string) => {
+    const arg = rawArg.trim().replace(/^['"]|['"]$/g, '').trim()
+    const allowed = arg === '' || arg.toLowerCase().startsWith('data:') || arg.startsWith('#')
+    return allowed ? match : 'url()'
+  })
+}
+
 /** Apply all transforms required for shadow-root injection. */
 export function prepareForShadowRoot(css: string): string {
   return scopeRootSelectors(stripFontImports(css))
