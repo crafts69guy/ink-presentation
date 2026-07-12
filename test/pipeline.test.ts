@@ -5,7 +5,7 @@ import { prepareDeck } from '../src/core/pipeline'
 import { SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX } from '../src/core/split'
 import { SAMPLE_DECK_BODY } from '../src/sample-deck'
 
-const pluginDefaults: PluginConfigValues = {
+const pluginConfig: PluginConfigValues = {
   slideSeparator: 'hr',
   theme: 'inkdrop',
   transition: 'slide',
@@ -60,7 +60,7 @@ function slidifyOracle(
 describe('prepareDeck', () => {
   it('produces a deck whose sentinels slidify cleanly (hr mode)', () => {
     const body = '---\ntransition: fade\n---\n\n# One\n\n---\n\n# Two\n\n---\n\n# Three'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     expect(deck.slideCount).toBe(3)
     expect(deck.options.transition).toBe('fade')
 
@@ -71,14 +71,14 @@ describe('prepareDeck', () => {
 
   it('never lets frontmatter become a slide in hr mode', () => {
     const body = '---\ntheme: black\n---\n\nfirst slide content'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     expect(deck.slideCount).toBe(1)
     expect(deck.markdown).not.toContain('theme: black')
   })
 
   it('handles h2 mode with vertical stacks through the oracle', () => {
     const body = '# A\nintro\n## A1\none\n# B\nend'
-    const deck = prepareDeck(body, { ...pluginDefaults, slideSeparator: 'h2' })
+    const deck = prepareDeck(body, { ...pluginConfig, slideSeparator: 'h2' })
     expect(deck.slideCount).toBe(3)
 
     const sections = slidifyOracle(deck.markdown, SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX)
@@ -90,7 +90,7 @@ describe('prepareDeck', () => {
 
   it('keeps exactly one Note: separator per slide for Reveal to attach', () => {
     const body = 'content\n<!-- note: a -->\n<!-- note: b -->\nNote: c'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     const notesRe = new RegExp(NOTES_SEPARATOR_REGEX, 'mgi')
     const parts = deck.markdown.split(notesRe)
     // RevealMarkdown attaches notes only when the split yields exactly 2 parts.
@@ -102,7 +102,7 @@ describe('prepareDeck', () => {
 
   it('handles auto mode promoting H2 to horizontal when no H1 is present', () => {
     const body = '## X\na\n## Y\nb'
-    const deck = prepareDeck(body, { ...pluginDefaults, slideSeparator: 'auto' })
+    const deck = prepareDeck(body, { ...pluginConfig, slideSeparator: 'auto' })
     expect(deck.slideCount).toBe(2)
 
     const sections = slidifyOracle(deck.markdown, SLIDE_SEPARATOR_REGEX, VSLIDE_SEPARATOR_REGEX)
@@ -111,27 +111,27 @@ describe('prepareDeck', () => {
 
   it('frontmatter separator override changes the split mode', () => {
     const body = '---\nseparator: h1\n---\n# A\ntext\n# B'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     expect(deck.options.separator).toBe('h1')
     expect(deck.slideCount).toBe(2)
   })
 
   it('is resilient to an empty note body', () => {
-    const deck = prepareDeck('', pluginDefaults)
+    const deck = prepareDeck('', pluginConfig)
     expect(deck.slideCount).toBe(1)
     expect(deck.warnings).toEqual([])
   })
 
   it('a note that is a single fenced code block stays one slide', () => {
     const body = '```md\n# fake\n\n---\n\nfake\n```'
-    const deck = prepareDeck(body, { ...pluginDefaults, slideSeparator: 'h1' })
+    const deck = prepareDeck(body, { ...pluginConfig, slideSeparator: 'h1' })
     expect(deck.slideCount).toBe(1)
     expect(deck.markdown).toBe(body)
   })
 
   it('a $$ block containing a separator line never splits a slide', () => {
     const body = 'intro\n\n$$\na = b\n\n---\n\n# not a heading\n$$\n\noutro'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     expect(deck.slideCount).toBe(1)
     expect(deck.markdown).toContain('data-ink-math=')
     expect(deck.markdown).not.toContain('# not a heading')
@@ -139,7 +139,7 @@ describe('prepareDeck', () => {
 
   it('math placeholders survive note extraction and slidify cleanly', () => {
     const body = '# A\nInline $x_i$ math\n\nNote: speaker\n\n---\n\n# B\n\n$$\ny^2\n$$'
-    const deck = prepareDeck(body, pluginDefaults)
+    const deck = prepareDeck(body, pluginConfig)
     expect(deck.slideCount).toBe(2)
     expect(deck.markdown).not.toContain('$x_i$')
 
@@ -152,7 +152,7 @@ describe('prepareDeck', () => {
   // Guards the sample deck's template-literal escaping (`\\pi`, `\$`) as
   // much as the pipeline itself.
   it('the bundled sample deck produces math placeholders and keeps currency literal', () => {
-    const deck = prepareDeck(SAMPLE_DECK_BODY, { ...pluginDefaults, slideSeparator: 'auto' })
+    const deck = prepareDeck(SAMPLE_DECK_BODY, { ...pluginConfig, slideSeparator: 'auto' })
     expect(deck.warnings).toEqual([])
 
     const spans = deck.markdown.match(/data-ink-math="([^"]*)"/g) ?? []

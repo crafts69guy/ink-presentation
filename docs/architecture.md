@@ -217,6 +217,19 @@ off disk at first use instead of shipping in the bundle — the same "don't pay
 for what you don't use" reasoning as `highlight.js/lib/common` above, just
 via lazy loading instead of a narrower static subset.
 
+Two deliberate non-optimizations, evaluated 2026-07-12:
+
+- **All 7 theme CSS string modules stay eagerly imported** in
+  `reveal/themes.ts` (~57 kB, only one theme renders per deck). Making them
+  dynamic imports would force `injectStyles` async on the deck-open critical
+  path and emit CJS chunks the plugin loader would have to resolve — real
+  complexity for an ~11 % bundle win. Revisit only if the budget becomes a
+  constraint.
+- **The 1.2 MB sourcemap is generated but not packaged.** `sourcemap: true`
+  stays on for development; package.json's `files` field limits any
+  npm-style pack to `lib/index.js` + the convention directories, so the map
+  never ships.
+
 ## Dev-environment gotcha: canary data directory
 
 The Inkdrop v6 canary uses `~/Library/Application Support/inkdrop-canary/`,

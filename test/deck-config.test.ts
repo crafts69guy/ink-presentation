@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mergeDeckOptions, parseDeckConfig } from '../src/core/deck-config'
 import type { PluginConfigValues } from '../src/config'
 
-const pluginDefaults: PluginConfigValues = {
+const pluginConfig: PluginConfigValues = {
   slideSeparator: 'hr',
   theme: 'inkdrop',
   transition: 'slide',
@@ -78,7 +78,7 @@ describe('parseDeckConfig', () => {
 
 describe('mergeDeckOptions', () => {
   it('uses plugin config when frontmatter is empty', () => {
-    const merged = mergeDeckOptions(pluginDefaults, {})
+    const merged = mergeDeckOptions(pluginConfig, {})
     expect(merged).toEqual({
       theme: 'inkdrop',
       transition: 'slide',
@@ -92,12 +92,12 @@ describe('mergeDeckOptions', () => {
   })
 
   it('carries frontmatter css into customCss', () => {
-    const merged = mergeDeckOptions(pluginDefaults, { css: '.reveal { --r-heading-color: teal; }' })
+    const merged = mergeDeckOptions(pluginConfig, { css: '.reveal { --r-heading-color: teal; }' })
     expect(merged.customCss).toBe('.reveal { --r-heading-color: teal; }')
   })
 
   it('lets frontmatter win, including explicit false', () => {
-    const merged = mergeDeckOptions(pluginDefaults, {
+    const merged = mergeDeckOptions(pluginConfig, {
       theme: 'white',
       slideNumber: false,
       separator: 'h1'

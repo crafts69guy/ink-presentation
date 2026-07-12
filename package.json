@@ -10,6 +10,13 @@
   ],
   "license": "MIT",
   "repository": "https://github.com/crafts69guy/ink-presentation",
+  "files": [
+    "lib/index.js",
+    "keymaps",
+    "menus",
+    "styles",
+    "docs"
+  ],
   "main": "./lib/index.js",
   "scripts": {
     "gen:css": "node scripts/gen-css.mjs",
