@@ -1,7 +1,8 @@
 /** Pure color parsing for light/dark detection (probe values are computed
  * styles, so the browser has already normalized them to rgb/rgba). */
 
-const RGB_RE = /^rgba?\(\s*(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)(?:[\s,/]+(\d+(?:\.\d+)?%?))?\s*\)$/
+const RGB_RE =
+  /^rgba?\(\s*(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)(?:[\s,/]+(\d+(?:\.\d+)?%?))?\s*\)$/
 
 /**
  * True when the color reads as dark. Unparseable or fully transparent
@@ -20,7 +21,6 @@ export function isDarkColor(color: string, fallback = true): boolean {
 
   // Relative luminance (ITU-R BT.709 coefficients on gamma-encoded values —
   // adequate for a binary light/dark call).
-  const luminance =
-    (0.2126 * Number(r) + 0.7152 * Number(g) + 0.0722 * Number(b)) / 255
+  const luminance = (0.2126 * Number(r) + 0.7152 * Number(g) + 0.0722 * Number(b)) / 255
   return luminance < 0.5
 }

@@ -103,7 +103,13 @@ async function loadKatex(): Promise<typeof import('katex').default> {
  * at render time and cannot follow live `var()` cascades the way the rest
  * of the deck's CSS does.
  */
-function resolveInkdropColors(): { background: string; text: string; border: string; accent: string; font: string } {
+function resolveInkdropColors(): {
+  background: string
+  text: string
+  border: string
+  accent: string
+  font: string
+} {
   const probe = document.createElement('div')
   probe.style.cssText = [
     'position:absolute',
@@ -266,7 +272,11 @@ export class RevealManager {
    * replaced blocks (no longer `pre code`) are naturally skipped by hljs.
    * Returns whether any diagram was rendered, so the caller knows to relayout.
    */
-  private async renderMermaidDiagrams(root: ShadowRoot, dark: boolean, inkdropNative: boolean): Promise<boolean> {
+  private async renderMermaidDiagrams(
+    root: ShadowRoot,
+    dark: boolean,
+    inkdropNative: boolean
+  ): Promise<boolean> {
     // RevealMarkdown overrides marked's default code renderer and does NOT
     // apply `langPrefix` ("language-"); the fence's info string becomes the
     // class verbatim (`class="mermaid"`), unlike highlight.js's own

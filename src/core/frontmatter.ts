@@ -28,7 +28,9 @@ export function extractFrontmatter(markdown: string): FrontmatterResult {
     return {
       data: null,
       body,
-      warnings: [`Ignored invalid YAML frontmatter: ${error instanceof Error ? error.message : String(error)}`]
+      warnings: [
+        `Ignored invalid YAML frontmatter: ${error instanceof Error ? error.message : String(error)}`
+      ]
     }
   }
 }

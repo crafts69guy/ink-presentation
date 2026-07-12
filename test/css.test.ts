@@ -61,9 +61,7 @@ describe('stripRemoteUrls', () => {
   })
 
   it('neutralizes local file paths', () => {
-    expect(stripRemoteUrls('.a { background: url(/etc/x.png); }')).toBe(
-      '.a { background: url(); }'
-    )
+    expect(stripRemoteUrls('.a { background: url(/etc/x.png); }')).toBe('.a { background: url(); }')
     expect(stripRemoteUrls('.a { background: url(file:///tmp/x); }')).toBe(
       '.a { background: url(); }'
     )

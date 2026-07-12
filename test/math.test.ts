@@ -36,7 +36,9 @@ describe('transformMath', () => {
     const out = transformMath('before\n\n$$\n\\sum_{i=0}^n i = \\frac{n(n+1)}{2}\n$$\n\nafter')
     expect(payloads(out)).toEqual(['\\sum_{i=0}^n i = \\frac{n(n+1)}{2}'])
     expect(out).toContain(MATH_DISPLAY_ATTR)
-    expect(out.split('\n')).toContain(`<span ${MATH_TEX_ATTR}="${encodeURIComponent('\\sum_{i=0}^n i = \\frac{n(n+1)}{2}')}" ${MATH_DISPLAY_ATTR}=""></span>`)
+    expect(out.split('\n')).toContain(
+      `<span ${MATH_TEX_ATTR}="${encodeURIComponent('\\sum_{i=0}^n i = \\frac{n(n+1)}{2}')}" ${MATH_DISPLAY_ATTR}=""></span>`
+    )
   })
 
   it('captures content on the $$ delimiter lines themselves', () => {

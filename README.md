@@ -46,7 +46,7 @@ it in the command palette.
 | <kbd>Home</kbd> / <kbd>End</kbd>                                                                              | First / last slide                                                    |
 | <kbd>O</kbd>                                                                                                  | Overview grid                                                         |
 | <kbd>S</kbd>                                                                                                  | Toggle speaker notes                                                  |
-| <kbd>V</kbd>                                                                                                  | Open the speaker view window (current + next slide, notes, timer)    |
+| <kbd>V</kbd>                                                                                                  | Open the speaker view window (current + next slide, notes, timer)     |
 | <kbd>F</kbd>                                                                                                  | Toggle fullscreen                                                     |
 | <kbd>B</kbd> / <kbd>.</kbd>                                                                                   | Pause (black screen)                                                  |
 | <kbd>Esc</kbd>                                                                                                | Close overview grid, or close the presentation (exits fullscreen too) |
@@ -70,7 +70,7 @@ Intro slide
 ## Code
 
 ```js
-const answer = 42;
+const answer = 42
 ```
 
 <!-- note: mention the benchmark here -->
@@ -80,17 +80,17 @@ const answer = 42;
 
 **Preferences ▸ Plugins ▸ ink-presentation**
 
-| Setting                            | Default   | Description                                                                                 |
-| ---------------------------------- | --------- | ------------------------------------------------------------------------------------------- |
-| Slide separator                    | `hr`      | `hr` splits on `---`; `h1`/`h2` split on headings (`h2` stacks H2s vertically)              |
-| Theme                              | `inkdrop` | `inkdrop` follows the app theme; also black, white, league, night, serif, simple            |
-| Slide transition                   | `slide`   | none / fade / slide / convex / concave / zoom                                               |
-| Enter fullscreen automatically     | on        |                                                                                             |
-| Show slide number                  | on        |                                                                                             |
-| Show progress bar                  | on        |                                                                                             |
-| Vertical slides                    | off       | Enables `--` as a vertical separator in `hr` mode                                           |
-| Auto-refresh the deck while presenting | on    | Rebuild the open deck (keeping position) when the note changes in another window or via sync |
-| Show "Present Sample Deck" command | on        | Adds a command/menu entry to present a bundled sample note showcasing the plugin's features |
+| Setting                                | Default   | Description                                                                                  |
+| -------------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
+| Slide separator                        | `hr`      | `hr` splits on `---`; `h1`/`h2` split on headings (`h2` stacks H2s vertically)               |
+| Theme                                  | `inkdrop` | `inkdrop` follows the app theme; also black, white, league, night, serif, simple             |
+| Slide transition                       | `slide`   | none / fade / slide / convex / concave / zoom                                                |
+| Enter fullscreen automatically         | on        |                                                                                              |
+| Show slide number                      | on        |                                                                                              |
+| Show progress bar                      | on        |                                                                                              |
+| Vertical slides                        | off       | Enables `--` as a vertical separator in `hr` mode                                            |
+| Auto-refresh the deck while presenting | on        | Rebuild the open deck (keeping position) when the note changes in another window or via sync |
+| Show "Present Sample Deck" command     | on        | Adds a command/menu entry to present a bundled sample note showcasing the plugin's features  |
 
 Frontmatter keys (`theme`, `transition`, `separator`, `slideNumber`, `progress`, `verticalSlides`, `css`) override these per note. `css` takes a block of deck-scoped CSS injected after the theme (see [docs/writing-slides.md](docs/writing-slides.md#custom-css)).
 

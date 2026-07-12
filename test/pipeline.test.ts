@@ -158,9 +158,7 @@ describe('prepareDeck', () => {
     const spans = deck.markdown.match(/data-ink-math="([^"]*)"/g) ?? []
     expect(spans.length).toBe(2)
     expect(deck.markdown).toContain(encodeURIComponent('e^{i\\pi} + 1 = 0'))
-    expect(deck.markdown).toContain(
-      encodeURIComponent('\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}')
-    )
+    expect(deck.markdown).toContain(encodeURIComponent('\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}'))
     expect(deck.markdown).toContain('$5 here and $10 there')
   })
 })

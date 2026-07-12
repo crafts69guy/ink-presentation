@@ -27,7 +27,12 @@ describe('parseSpeakerMessage', () => {
   })
 
   it('parses a position message', () => {
-    const message = parseSpeakerMessage({ kind: 'position', seq: 3, position: { h: 2, v: 1 }, ...base })
+    const message = parseSpeakerMessage({
+      kind: 'position',
+      seq: 3,
+      position: { h: 2, v: 1 },
+      ...base
+    })
     expect(message).toEqual({ kind: 'position', seq: 3, position: { h: 2, v: 1 }, ...base })
   })
 
@@ -55,9 +60,15 @@ describe('parseSpeakerMessage', () => {
     expect(parseSpeakerMessage({ kind: 'hello', sessionId: '', from: 'w' })).toBeNull()
     expect(parseSpeakerMessage({ kind: 'hello', sessionId: 's' })).toBeNull()
     expect(parseSpeakerMessage({ kind: 'unknown', ...base })).toBeNull()
-    expect(parseSpeakerMessage({ kind: 'position', seq: Number.NaN, position: { h: 0, v: 0 }, ...base })).toBeNull()
-    expect(parseSpeakerMessage({ kind: 'position', seq: 1, position: { h: 'x', v: 0 }, ...base })).toBeNull()
-    expect(parseSpeakerMessage({ kind: 'init', seq: 1, markdown: 42, position: { h: 0, v: 0 }, ...base })).toBeNull()
+    expect(
+      parseSpeakerMessage({ kind: 'position', seq: Number.NaN, position: { h: 0, v: 0 }, ...base })
+    ).toBeNull()
+    expect(
+      parseSpeakerMessage({ kind: 'position', seq: 1, position: { h: 'x', v: 0 }, ...base })
+    ).toBeNull()
+    expect(
+      parseSpeakerMessage({ kind: 'init', seq: 1, markdown: 42, position: { h: 0, v: 0 }, ...base })
+    ).toBeNull()
   })
 })
 
@@ -73,7 +84,9 @@ describe('sanitizeDeckOptions', () => {
       autoFullscreen: false,
       customCss: ''
     })
-    expect(sanitizeDeckOptions({ theme: 'white', showSlideNumber: true, autoFullscreen: true })).toMatchObject({
+    expect(
+      sanitizeDeckOptions({ theme: 'white', showSlideNumber: true, autoFullscreen: true })
+    ).toMatchObject({
       theme: 'white',
       showSlideNumber: true,
       autoFullscreen: false
@@ -102,7 +115,10 @@ describe('SeqGate', () => {
 
 describe('parseSpeakerEnter', () => {
   it('accepts the boot payload and rejects junk', () => {
-    expect(parseSpeakerEnter({ sessionId: 's1', from: 'w1' })).toEqual({ sessionId: 's1', from: 'w1' })
+    expect(parseSpeakerEnter({ sessionId: 's1', from: 'w1' })).toEqual({
+      sessionId: 's1',
+      from: 'w1'
+    })
     expect(parseSpeakerEnter({ sessionId: 's1' })).toBeNull()
     expect(parseSpeakerEnter({ sessionId: '', from: 'w1' })).toBeNull()
     expect(parseSpeakerEnter(undefined)).toBeNull()

@@ -40,11 +40,7 @@ export function extractSlideNotes(slide: string): SlideNotes {
   const lines = content.split('\n')
   const noteLineIndex = lines.findIndex(line => NOTE_LINE_RE.test(line))
   if (noteLineIndex !== -1) {
-    const tail = lines
-      .slice(noteLineIndex)
-      .join('\n')
-      .replace(NOTE_LINE_RE, '')
-      .trim()
+    const tail = lines.slice(noteLineIndex).join('\n').replace(NOTE_LINE_RE, '').trim()
     if (tail !== '') noteParts.push(tail)
     content = lines.slice(0, noteLineIndex).join('\n')
   }

@@ -13,7 +13,17 @@ export default defineConfig({
     // node:* builtins resolve natively in the Electron renderer (used by
     // katex-assets.ts to read KaTeX's CSS/fonts off disk at runtime).
     // electron is the host's own module (ipcRenderer for the speaker view).
-    neverBundle: ['react', 'react-dom', 'inkdrop', 'electron', 'mermaid', 'katex', 'node:fs', 'node:module', 'node:path'],
+    neverBundle: [
+      'react',
+      'react-dom',
+      'inkdrop',
+      'electron',
+      'mermaid',
+      'katex',
+      'node:fs',
+      'node:module',
+      'node:path'
+    ],
     alwaysBundle: ['reveal.js', 'js-yaml', 'event-kit', 'highlight.js']
   },
   sourcemap: true,

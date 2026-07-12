@@ -33,7 +33,10 @@ export function stripFontImports(css: string): string {
  */
 export function stripRemoteUrls(css: string): string {
   return css.replace(/url\(([^)]*)\)/gi, (match, rawArg: string) => {
-    const arg = rawArg.trim().replace(/^['"]|['"]$/g, '').trim()
+    const arg = rawArg
+      .trim()
+      .replace(/^['"]|['"]$/g, '')
+      .trim()
     const allowed = arg === '' || arg.toLowerCase().startsWith('data:') || arg.startsWith('#')
     return allowed ? match : 'url()'
   })

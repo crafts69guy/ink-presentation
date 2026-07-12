@@ -87,7 +87,7 @@ export const configSchema: Record<keyof PluginConfigValues, ConfigSchema> = {
     title: 'Show "Present Sample Deck" command',
     description:
       'Adds a command (and Plugins menu entry) to present a bundled sample ' +
-      'note showcasing the plugin\'s features, without touching your notes.',
+      "note showcasing the plugin's features, without touching your notes.",
     type: 'boolean',
     default: true,
     order: 9

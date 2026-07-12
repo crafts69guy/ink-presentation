@@ -39,9 +39,7 @@ export function broadcastSpeakerMessage(message: SpeakerMessage): void {
  * Rejects when the IPC surface is gone (future canary) — callers notify. */
 export async function openSpeakerWindow(sessionId: string): Promise<void> {
   await ipcRenderer.invoke('create-simple-window', {
-    runCommands: [
-      { command: SPEAKER_ENTER_COMMAND, detail: { sessionId, from: WINDOW_ORIGIN_ID } }
-    ]
+    runCommands: [{ command: SPEAKER_ENTER_COMMAND, detail: { sessionId, from: WINDOW_ORIGIN_ID } }]
   })
 }
 

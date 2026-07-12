@@ -71,10 +71,7 @@ describe('splitSlides — h2 mode', () => {
 
   it('H1 starts a horizontal group, H2 stacks vertically inside it', () => {
     const groups = splitSlides('# A\nintro\n## A1\none\n## A2\ntwo\n# B\nend', opts)
-    expect(groups).toEqual([
-      ['# A\nintro', '## A1\none', '## A2\ntwo'],
-      ['# B\nend']
-    ])
+    expect(groups).toEqual([['# A\nintro', '## A1\none', '## A2\ntwo'], ['# B\nend']])
   })
 
   it('handles a note with only H2 headings', () => {
@@ -103,10 +100,7 @@ describe('splitSlides — auto mode', () => {
 
   it('splits like h2 mode (H1 horizontal, H2 vertical) when both H1 and H2 are present', () => {
     const groups = splitSlides('# A\nintro\n## A1\none\n## A2\ntwo\n# B\nend', opts)
-    expect(groups).toEqual([
-      ['# A\nintro', '## A1\none', '## A2\ntwo'],
-      ['# B\nend']
-    ])
+    expect(groups).toEqual([['# A\nintro', '## A1\none', '## A2\ntwo'], ['# B\nend']])
   })
 
   it('promotes H2 to a flat horizontal splitter when only H2 headings are present', () => {

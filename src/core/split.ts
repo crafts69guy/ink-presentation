@@ -189,7 +189,5 @@ function pruneEmpty(groups: SlideGroups): SlideGroups {
 
 /** Join slide groups back into a single document using the sentinels. */
 export function joinWithSentinels(groups: SlideGroups): string {
-  return groups
-    .map(group => group.join(`\n${VSLIDE_SENTINEL}\n`))
-    .join(`\n${SLIDE_SENTINEL}\n`)
+  return groups.map(group => group.join(`\n${VSLIDE_SENTINEL}\n`)).join(`\n${SLIDE_SENTINEL}\n`)
 }

@@ -52,8 +52,8 @@ fall back to the next family in their stacks).
 
 ### CSS as generated TypeScript
 
-tsdown's css-guard intercepts `.css` imports and wants CSS *bundling*; we
-need CSS *text* to inject into the shadow root. `scripts/gen-css.mjs`
+tsdown's css-guard intercepts `.css` imports and wants CSS _bundling_; we
+need CSS _text_ to inject into the shadow root. `scripts/gen-css.mjs`
 materializes each sheet as `src/generated/*.css → .ts` string modules ahead
 of the build (`pnpm gen:css`, wired into `build`/`dev`). Deterministic, no
 bundler magic.
@@ -157,7 +157,7 @@ an error notification if it vanishes):
 3. `window:close` IPC lets the speaker window close itself.
 
 `core/speaker-protocol.ts` (pure, unit-tested) defines and validates the
-messages. Broadcasts arrive in *all* windows including the sender, so every
+messages. Broadcasts arrive in _all_ windows including the sender, so every
 message carries a `sessionId` and a per-window `from` id for echo/foreign
 filtering. State flows one way — the presenter answers `hello` with `init`
 (prepared markdown + options + position, re-sent on every rebuild) and

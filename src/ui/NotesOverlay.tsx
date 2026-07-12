@@ -1,7 +1,7 @@
-import React from 'react';
+import React from 'react'
 
 export interface NotesOverlayProps {
-  notes: string;
+  notes: string
 }
 
 /**
@@ -18,5 +18,5 @@ export function NotesOverlay({ notes }: NotesOverlayProps) {
         <p className="ink-presentation-notes-empty">No speaker notes for this slide</p>
       )}
     </div>
-  );
+  )
 }
